@@ -8,13 +8,7 @@ import (
 func main() {
 
 	var conf config.Config
-	conf.EmailServiceUrl = "smtp.gmail.com"
-	conf.EmailServicePort = 587
-	conf.EmailToSendFrom = "genesis.task.mykhailo@gmail.com"
-	conf.EmailToSendFromPassword = "lgjvxuatvpeislnb"
-	conf.EmailSubject = "Would you like to get a new course of BTC?"
-	conf.EmailStoragePath = "/home/mstatnik/golang/btc-test-task"
-	conf.CoinAPIUrl = "https://rest.coinapi.io/v1/exchangerate/BTC/UAH"
+	conf.LoadFromENV()
 
 	var lifecycle lifecycle.Lifecycle
 	lifecycle.Init(&conf)

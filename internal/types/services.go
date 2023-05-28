@@ -1,13 +1,15 @@
 package types
 
 import (
-	"btc-test-task/internal/course_accessors"
 	"btc-test-task/internal/email_sender"
 	"btc-test-task/internal/emails_storage"
+	"btc-test-task/internal/rate_accessors"
+	"btc-test-task/internal/templates"
 )
 
 type Services struct {
-	CourseAccessor course_accessors.CoinApI
-	EmailSender    email_sender.EmailSender
-	EmailStorage   emails_storage.EmailsStorage
+	RateAccessor rate_accessors.RateAccessor
+	EmailSender  email_sender.EmailSender
+	EmailStorage emails_storage.EmailsStorage
+	Templates    templates.Templates
 }

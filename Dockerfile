@@ -11,6 +11,7 @@ RUN apk --no-cache add ca-certificates
 FROM scratch
 
 COPY --from=build-stage /btc-test-task /btc-test-task
+COPY --from=build-stage /go/src/btc-test-task/.env /.env
 
 COPY --from=build-stage /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
