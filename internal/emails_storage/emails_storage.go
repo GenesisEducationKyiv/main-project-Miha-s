@@ -8,17 +8,17 @@ import (
 	"os"
 )
 
-var (
-	emails            = make(map[string]struct{})
+type EmailsStorage struct {
+	emails            map[string]struct{}
 	storage_file_path string
-)
+	storage_name      string "emails_storage.json"
+}
 
-const storage_name = "emails_storage.json"
-
-func Init(conf *config.Config) error {
-	storage_file_path = conf.EmailStoragePath + "/" + storage_name
-	if _, err := os.Stat(storage_file_path); err == nil {
-		return openExistingStorage(storage_file_path)
+func (storage *EmailsStorage) Init(conf *config.Config) error {
+	storage.emails = make(map[string]struct{})
+	storage.storage_file_path = conf.EmailStoragePath + "/" + storage.storage_name
+	if _, err := os.Stat(storage.storage_file_path); err == nil {
+		return storage.openExistingStorage()
 	} else {
 		if err != os.ErrNotExist {
 			return err
@@ -37,15 +37,15 @@ func get_array_from_set(set *map[string]struct{}) []string {
 	return result
 }
 
-func Close() {
+func (storage *EmailsStorage) Close() {
 	logger.LogInfo("Closing file storage")
-	storage_file, err := os.Create(storage_file_path)
+	storage_file, err := os.Create(storage.storage_file_path)
 	if err != nil {
 		logger.LogError(err)
 		return
 	}
 	json_map := make(map[string][]string)
-	json_map["emails"] = get_array_from_set(&emails)
+	json_map["emails"] = get_array_from_set(&storage.emails)
 
 	json_data, err := json.Marshal(json_map)
 	if err != nil {
@@ -57,20 +57,20 @@ func Close() {
 	storage_file.Close()
 }
 
-func AddEmail(email string) error {
-	if _, err := emails[email]; err {
+func (storage *EmailsStorage) AddEmail(email string) error {
+	if _, err := storage.emails[email]; err {
 		return errors.New("email alredy exists")
 	}
-	emails[email] = struct{}{}
+	storage.emails[email] = struct{}{}
 	return nil
 }
 
-func GetAllEmails() *map[string]struct{} {
-	return &emails
+func (storage *EmailsStorage) GetAllEmails() *map[string]struct{} {
+	return &storage.emails
 }
 
-func openExistingStorage(path string) error {
-	data, err := os.ReadFile(storage_file_path)
+func (storage *EmailsStorage) openExistingStorage() error {
+	data, err := os.ReadFile(storage.storage_file_path)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func openExistingStorage(path string) error {
 	json_array := json_map["emails"].([]interface{})
 
 	for _, email := range json_array {
-		emails[email.(string)] = struct{}{}
+		storage.emails[email.(string)] = struct{}{}
 	}
 
 	return nil

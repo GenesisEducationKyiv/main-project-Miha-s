@@ -22,7 +22,7 @@ type Server struct {
 	port   uint
 }
 
-func (serv *Server) Init(conf *config.Config) {
+func (serv *Server) Init(conf *config.Config, handlers_factory handlers.HandlersFactory) {
 	serv.router = chi.NewRouter()
 	serv.router.Use(middleware.RequestID)
 	serv.router.Use(middleware.RealIP)
@@ -31,9 +31,9 @@ func (serv *Server) Init(conf *config.Config) {
 
 	serv.router.Use(middleware.Timeout(60 * time.Second))
 
-	serv.router.Get("/rate", handlers.Rate)
-	serv.router.Post("/subscribe", handlers.Subscribe)
-	serv.router.Post("/sendEmails", handlers.SendEmails)
+	serv.router.Get("/rate", handlers_factory.CreateRate())
+	serv.router.Post("/subscribe", handlers_factory.CreateSendEmails())
+	serv.router.Post("/sendEmails", handlers_factory.CreateSendEmails())
 }
 
 func (serv *Server) Run() {

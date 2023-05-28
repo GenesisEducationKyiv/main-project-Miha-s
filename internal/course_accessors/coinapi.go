@@ -9,14 +9,12 @@ import (
 	"net/http"
 )
 
-type coinAPI struct {
+type CoinApI struct {
 	endpoint string
 }
 
-var coin_api coinAPI
-
-func Init(conf *config.Config) {
-
+func (api *CoinApI) Init(conf *config.Config) {
+	api.endpoint = conf.CoinAPIUrl
 }
 
 func extract_course(json_value []byte) (float64, error) {
@@ -27,11 +25,11 @@ func extract_course(json_value []byte) (float64, error) {
 	return dat["rate"].(float64), nil
 }
 
-func GetBTCToUAHCourse() (float64, error) {
+func (api *CoinApI) GetBTCToUAHCourse() (float64, error) {
 	value := 0.0
 	req, err := http.NewRequest(
 		http.MethodGet,
-		"https://rest.coinapi.io/v1/exchangerate/BTC/UAH",
+		api.endpoint,
 		nil,
 	)
 

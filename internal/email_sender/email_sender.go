@@ -15,27 +15,25 @@ type EmailSender struct {
 	dialer  gomail.Dialer
 }
 
-var Sender EmailSender
-
-func Init(conf *config.Config) {
-	Sender.dialer = *gomail.NewDialer(conf.EmailServiceUrl, conf.EmailServicePort,
+func (sender *EmailSender) Init(conf *config.Config) {
+	sender.dialer = *gomail.NewDialer(conf.EmailServiceUrl, conf.EmailServicePort,
 		conf.EmailToSendFrom, conf.EmailToSendFromPassword)
 
-	Sender.email = conf.EmailToSendFrom
-	Sender.subject = conf.EmailSubject
-	Sender.dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	
-	Sender.subject = conf.EmailSubject
+	sender.email = conf.EmailToSendFrom
+	sender.subject = conf.EmailSubject
+	sender.dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	sender.subject = conf.EmailSubject
 }
 
-func SendEmail(recipient, body string) error {
+func (sender *EmailSender) SendEmail(recipient, body string) error {
 	message := gomail.NewMessage()
-	message.SetHeader("From", Sender.email)
+	message.SetHeader("From", sender.email)
 	message.SetHeader("To", recipient)
-	message.SetHeader("Subject", Sender.subject)
+	message.SetHeader("Subject", sender.subject)
 	message.SetBody("text/plain", body)
 
-	if err := Sender.dialer.DialAndSend(message); err != nil {
+	if err := sender.dialer.DialAndSend(message); err != nil {
 		logger.LogError(err)
 		return err
 	}
