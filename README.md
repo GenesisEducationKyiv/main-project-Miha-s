@@ -27,3 +27,15 @@ Templates is responsible for creating email parametrized templates, that will be
 RateAccessor is responsible for accessing currency rate.
 EmailStorage is responsible for managing and saving email addresses.
 EmailSender is responsible for sending emails to users.
+
+---
+
+## Launch project using docker compose
+```bash
+docker compose up
+```
+as specified in docker-compose.yml, the server will serve on port 2777
+## Endpoints
+ - `GET` `/api/rate` - get current rate between currencies specified in .env file
+ - `POST` `/api/subscribe` - send form valie 'email' to subscribe to mailing list
+ - `POST` `/api/sendEmails` - send current rate to all subscribed emails

@@ -20,7 +20,7 @@ func (api *CoinApI) Init(conf *config.Config) error {
 	return nil
 }
 
-func extract_rate(json_value []byte) (float64, error) {
+func extractRate(json_value []byte) (float64, error) {
 	var dat map[string]interface{}
 	if err := json.Unmarshal(json_value, &dat); err != nil {
 		return 0, err
@@ -46,7 +46,14 @@ func (api *CoinApI) GetCurrentRate() (float64, error) {
 		return value, err
 	}
 	responseBytes, err := ioutil.ReadAll(res.Body)
-	value, err = extract_rate(responseBytes)
+	if err != nil {
+		return value, err
+	}
+	value, err = extractRate(responseBytes)
+	if err != nil {
+		return value, err
+	}
+
 	logger.LogInfo(fmt.Sprintf("The rate %v", value))
 	return value, err
 }

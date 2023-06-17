@@ -28,7 +28,7 @@ func (storage *EmailsStorageImpl) Init(conf *config.Config) error {
 	return nil
 }
 
-func get_array_from_set(set *map[string]struct{}) []string {
+func getArrayFromSet(set *map[string]struct{}) []string {
 	result := make([]string, 0)
 
 	for key := range *set {
@@ -46,7 +46,7 @@ func (storage *EmailsStorageImpl) Close() {
 		return
 	}
 	json_map := make(map[string][]string)
-	json_map["emails"] = get_array_from_set(&storage.emails)
+	json_map["emails"] = getArrayFromSet(&storage.emails)
 
 	json_data, err := json.Marshal(json_map)
 	if err != nil {
