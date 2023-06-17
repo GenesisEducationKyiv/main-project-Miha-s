@@ -17,7 +17,7 @@ type Server struct {
 	port   uint
 }
 
-func (serv *Server) Init(conf *config.Config, handlers_factory handlers.HandlersFactory) {
+func (serv *Server) Init(conf *config.Config, handlers_factory handlers.HandlersFactory) error {
 	serv.port = conf.Port
 
 	serv.router = chi.NewRouter()
@@ -34,6 +34,7 @@ func (serv *Server) Init(conf *config.Config, handlers_factory handlers.Handlers
 		r.Post("/sendEmails", handlers_factory.CreateSendEmails())
 	})
 
+	return nil
 }
 
 func (serv *Server) Run() error {

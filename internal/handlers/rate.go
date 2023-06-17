@@ -14,7 +14,10 @@ func (factory *HandlersFactoryImpl) CreateRate() http.HandlerFunc {
 			return
 		}
 
-		w.Write([]byte(factory.services.Templates.CurrencyRate(rate)))
+		_, err = w.Write([]byte(factory.services.Templates.CurrencyRate(rate)))
+		if err != nil {
+			logger.LogError(err)
+		}
 		w.WriteHeader(http.StatusOK)
 	})
 }

@@ -5,7 +5,7 @@ import (
 	"btc-test-task/internal/logger"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -45,7 +45,7 @@ func (api *CoinApI) GetCurrentRate() (float64, error) {
 	if err != nil {
 		return value, err
 	}
-	responseBytes, err := ioutil.ReadAll(res.Body)
+	responseBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return value, err
 	}

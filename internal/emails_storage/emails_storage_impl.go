@@ -14,18 +14,22 @@ type EmailsStorageImpl struct {
 	storage_name      string
 }
 
+func fileExists(filepath string) bool {
+	info, err := os.Stat(filepath)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
 func (storage *EmailsStorageImpl) Init(conf *config.Config) error {
 	storage.storage_name = "emails_storage.json"
 	storage.emails = make(map[string]struct{})
 	storage.storage_file_path = conf.EmailStoragePath + "/" + storage.storage_name
-	if _, err := os.Stat(storage.storage_file_path); err == nil {
-		return storage.openExistingStorage()
-	} else {
-		if err != os.ErrNotExist {
-			return err
-		}
+	if !fileExists(storage.storage_file_path) {
+		return nil
 	}
-	return nil
+	return storage.openExistingStorage()
 }
 
 func getArrayFromSet(set *map[string]struct{}) []string {
@@ -54,7 +58,10 @@ func (storage *EmailsStorageImpl) Close() {
 		return
 	}
 
-	storage_file.Write(json_data)
+	_, err = storage_file.Write(json_data)
+	if err != nil {
+		logger.LogErrorStr("Was not able to save storage")
+	}
 	storage_file.Close()
 }
 

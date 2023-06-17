@@ -41,9 +41,11 @@ func (sender *EmailSenderImpl) SendEmail(recipient, body string) error {
 	return nil
 }
 
-func (sender *EmailSenderImpl) BroadcastEmails(recipients *map[string]struct{}, body string) error {
+func (sender *EmailSenderImpl) BroadcastEmails(recipients *map[string]struct{}, body string) {
 	for email := range *recipients {
-		sender.SendEmail(email, body)
+		err := sender.SendEmail(email, body)
+		if err != nil {
+			logger.LogWarn("Was not able to send email")
+		}
 	}
-	return nil
 }

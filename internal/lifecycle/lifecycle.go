@@ -28,21 +28,39 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	logger.Init(conf)
 
 	lifecycle.services.Templates = &templates.TemplatesImpl{}
-	lifecycle.services.Templates.Init(conf)
-
+	err := lifecycle.services.Templates.Init(conf)
+	if err != nil {
+		return err
+	}
 	lifecycle.services.EmailSender = &email_sender.EmailSenderImpl{}
-	lifecycle.services.EmailSender.Init(conf)
+	err = lifecycle.services.EmailSender.Init(conf)
+	if err != nil {
+		return err
+	}
 
 	lifecycle.services.RateAccessor = &rate_accessors.CoinApI{}
-	lifecycle.services.RateAccessor.Init(conf)
+	err = lifecycle.services.RateAccessor.Init(conf)
+	if err != nil {
+		return err
+	}
 
 	lifecycle.services.EmailStorage = &emails_storage.EmailsStorageImpl{}
-	lifecycle.services.EmailStorage.Init(conf)
+	err = lifecycle.services.EmailStorage.Init(conf)
+	if err != nil {
+		return err
+	}
 
 	lifecycle.handlers_factory = &handlers.HandlersFactoryImpl{}
-	lifecycle.handlers_factory.Init(conf, &lifecycle.services)
+	err = lifecycle.handlers_factory.Init(conf, &lifecycle.services)
+	if err != nil {
+		return err
+	}
 
-	lifecycle.server.Init(conf, lifecycle.handlers_factory)
+	err = lifecycle.server.Init(conf, lifecycle.handlers_factory)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
