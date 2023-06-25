@@ -27,7 +27,10 @@ func (conf *Config) LoadFromENV() error {
 		return err
 	}
 
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		return err
+	}
 	conf.Port = uint(port)
 
 	conf.CoinAPIUrl = os.Getenv("COINAPI_URL")

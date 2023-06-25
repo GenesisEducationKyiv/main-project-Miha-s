@@ -9,13 +9,13 @@ import (
 	gomail "gopkg.in/gomail.v2"
 )
 
-type EmailSenderImpl struct {
+type GoMailSender struct {
 	email   string
 	subject string
 	dialer  gomail.Dialer
 }
 
-func (sender *EmailSenderImpl) Init(conf *config.Config) error {
+func (sender *GoMailSender) Init(conf *config.Config) error {
 	sender.dialer = *gomail.NewDialer(conf.EmailServiceUrl, conf.EmailServicePort,
 		conf.EmailToSendFrom, conf.EmailToSendFromPassword)
 
@@ -27,7 +27,7 @@ func (sender *EmailSenderImpl) Init(conf *config.Config) error {
 	return nil
 }
 
-func (sender *EmailSenderImpl) SendEmail(recipient, body string) error {
+func (sender *GoMailSender) SendEmail(recipient, body string) error {
 	message := gomail.NewMessage()
 	message.SetHeader("From", sender.email)
 	message.SetHeader("To", recipient)
@@ -41,7 +41,7 @@ func (sender *EmailSenderImpl) SendEmail(recipient, body string) error {
 	return nil
 }
 
-func (sender *EmailSenderImpl) BroadcastEmails(recipients *map[string]struct{}, body string) {
+func (sender *GoMailSender) BroadcastEmails(recipients *map[string]struct{}, body string) {
 	for email := range *recipients {
 		err := sender.SendEmail(email, body)
 		if err != nil {

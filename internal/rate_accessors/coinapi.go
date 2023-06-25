@@ -4,6 +4,7 @@ import (
 	"btc-test-task/internal/config"
 	"btc-test-task/internal/logger"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,12 +21,16 @@ func (api *CoinApI) Init(conf *config.Config) error {
 	return nil
 }
 
-func extractRate(json_value []byte) (float64, error) {
+func extractRate(jsonValue []byte) (float64, error) {
 	var dat map[string]interface{}
-	if err := json.Unmarshal(json_value, &dat); err != nil {
+	if err := json.Unmarshal(jsonValue, &dat); err != nil {
 		return 0, err
 	}
-	return dat["rate"].(float64), nil
+	rate, ok := dat["rate"].(float64)
+	if !ok {
+		return 0, errors.New("cannot extract float rate value")
+	}
+	return rate, nil
 }
 
 func (api *CoinApI) GetCurrentRate() (float64, error) {

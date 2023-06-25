@@ -1,0 +1,12 @@
+linters:
+  disable-all: true
+  enable:
+    - gofmt
+    - goimports
+    - ineffassign
+    - gosimple
+    - gochecknoglobals
+    - goconst
+    - bodyclose
+    - whitespace
+    - nosnakecase

@@ -5,6 +5,7 @@ import (
 	"btc-test-task/internal/logger"
 	"encoding/json"
 	"errors"
+	"net/mail"
 	"os"
 )
 
@@ -32,10 +33,10 @@ func (storage *EmailsStorageImpl) Init(conf *config.Config) error {
 	return storage.openExistingStorage()
 }
 
-func getArrayFromSet(set *map[string]struct{}) []string {
+func getArrayFromSet(set map[string]struct{}) []string {
 	result := make([]string, 0)
 
-	for key := range *set {
+	for key := range set {
 		result = append(result, key)
 	}
 
@@ -45,12 +46,14 @@ func getArrayFromSet(set *map[string]struct{}) []string {
 func (storage *EmailsStorageImpl) Close() {
 	logger.LogInfo("Closing file storage")
 	storage_file, err := os.Create(storage.storage_file_path)
+	defer storage_file.Close()
+
 	if err != nil {
 		logger.LogError(err)
 		return
 	}
 	json_map := make(map[string][]string)
-	json_map["emails"] = getArrayFromSet(&storage.emails)
+	json_map["emails"] = getArrayFromSet(storage.emails)
 
 	json_data, err := json.Marshal(json_map)
 	if err != nil {
@@ -62,7 +65,6 @@ func (storage *EmailsStorageImpl) Close() {
 	if err != nil {
 		logger.LogErrorStr("Was not able to save storage")
 	}
-	storage_file.Close()
 }
 
 func (storage *EmailsStorageImpl) AddEmail(email string) error {
@@ -75,6 +77,11 @@ func (storage *EmailsStorageImpl) AddEmail(email string) error {
 
 func (storage *EmailsStorageImpl) GetAllEmails() *map[string]struct{} {
 	return &storage.emails
+}
+
+func (storage *EmailsStorageImpl) ValidateEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
 }
 
 func (storage *EmailsStorageImpl) openExistingStorage() error {

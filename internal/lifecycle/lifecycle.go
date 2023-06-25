@@ -32,7 +32,7 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	if err != nil {
 		return err
 	}
-	lifecycle.services.EmailSender = &email_sender.EmailSenderImpl{}
+	lifecycle.services.EmailSender = &email_sender.GoMailSender{}
 	err = lifecycle.services.EmailSender.Init(conf)
 	if err != nil {
 		return err
