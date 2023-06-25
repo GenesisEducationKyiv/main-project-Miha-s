@@ -34,11 +34,11 @@ func (api *CoinAPI) init(conf *config.Config) error {
 func extractRate(jsonValue []byte) (float64, error) {
 	var dat map[string]interface{}
 	if err := json.Unmarshal(jsonValue, &dat); err != nil {
-		return 0, errors.Wrap(ErrFailedToGetRate, "extractRate: ")
+		return 0, errors.Wrap(ErrFailedToGetRate, "extractRate")
 	}
 	rate, ok := dat["rate"].(float64)
 	if !ok {
-		return 0, errors.Wrap(ErrFailedToGetRate, "extractRate: ")
+		return 0, errors.Wrap(ErrFailedToGetRate, "extractRate")
 	}
 	return rate, nil
 }
@@ -52,7 +52,7 @@ func (api *CoinAPI) GetCurrentRate() (float64, error) {
 	)
 
 	if err != nil {
-		return value, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate: ")
+		return value, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate")
 	}
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("X-CoinAPI-Key", api.apiKey)
@@ -60,15 +60,15 @@ func (api *CoinAPI) GetCurrentRate() (float64, error) {
 	defer res.Body.Close()
 
 	if err != nil {
-		return value, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate: ")
+		return value, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate")
 	}
 	responseBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		return value, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate: ")
+		return value, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate")
 	}
 	value, err = extractRate(responseBytes)
 	if err != nil {
-		return value, errors.Wrap(err, "GetCurrentRate: ")
+		return value, errors.Wrap(err, "GetCurrentRate")
 	}
 
 	logger.Log.Infof("The rate %v", value)

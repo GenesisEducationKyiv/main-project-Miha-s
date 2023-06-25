@@ -30,31 +30,31 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	err := error(nil)
 	lifecycle.services.Templates, err = templates.NewSimpleTextTemplates(conf)
 	if err != nil {
-		return errors.Wrap(err, "Init: ")
+		return errors.Wrap(err, "Init")
 	}
 	lifecycle.services.EmailSender, err = emailSender.NewGoMailSender(conf)
 	if err != nil {
-		return errors.Wrap(err, "Init: ")
+		return errors.Wrap(err, "Init")
 	}
 
 	lifecycle.services.RateAccessor, err = rateAccessors.NewCoinAPI(conf)
 	if err != nil {
-		return errors.Wrap(err, "Init: ")
+		return errors.Wrap(err, "Init")
 	}
 
 	lifecycle.services.EmailStorage, err = emailsStorage.NewJsonEmailsStorage(conf)
 	if err != nil {
-		return errors.Wrap(err, "Init: ")
+		return errors.Wrap(err, "Init")
 	}
 
 	lifecycle.handlersFactory, err = handlers.NewHandlersFactoryImpl(conf, &lifecycle.services)
 	if err != nil {
-		return errors.Wrap(err, "Init: ")
+		return errors.Wrap(err, "Init")
 	}
 
 	lifecycle.server, err = server.NewServer(conf, lifecycle.handlersFactory)
 	if err != nil {
-		return errors.Wrap(err, "Init: ")
+		return errors.Wrap(err, "Init")
 	}
 
 	logger.Log.Infof("The server is listening on port: %v", conf.Port)

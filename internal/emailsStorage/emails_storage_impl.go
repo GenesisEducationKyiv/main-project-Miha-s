@@ -37,18 +37,18 @@ func (storage *JsonEmailsStorage) initStorageFile() error {
 	err := error(nil)
 	storage.storageFile, err = os.OpenFile(storage.storageFilePath, os.O_CREATE|os.O_RDWR, 0755)
 	if err != nil {
-		return errors.Wrap(err, "initStorageFile: ")
+		return errors.Wrap(err, "initStorageFile")
 	}
 	fileStats, err := storage.storageFile.Stat()
 	if err != nil {
-		return errors.Wrap(err, "initStorageFile: ")
+		return errors.Wrap(err, "initStorageFile")
 	}
 	if fileStats.Size() == 0 {
 		return nil
 	}
 	err = storage.uploadFromFile()
 	if err != nil {
-		return errors.Wrap(err, "initStorageFile: ")
+		return errors.Wrap(err, "initStorageFile")
 	}
 
 	return nil
@@ -96,12 +96,12 @@ func (storage *JsonEmailsStorage) ValidateEmail(email string) bool {
 func (storage *JsonEmailsStorage) uploadFromFile() error {
 	data, err := os.ReadFile(storage.storageFilePath)
 	if err != nil {
-		return errors.Wrap(err, "uploadFromFile: ")
+		return errors.Wrap(err, "uploadFromFile")
 	}
 	var jsonMap map[string]interface{}
 	err = json.Unmarshal(data, &jsonMap)
 	if err != nil {
-		return errors.Wrap(err, "uploadFromFile: ")
+		return errors.Wrap(err, "uploadFromFile")
 	}
 	jsonArray := jsonMap["emails"].([]interface{})
 

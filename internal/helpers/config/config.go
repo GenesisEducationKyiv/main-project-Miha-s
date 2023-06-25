@@ -28,12 +28,12 @@ type Config struct {
 func (conf *Config) LoadFromENV() error {
 	err := godotenv.Load(".env")
 	if err != nil {
-		return errors.Wrap(err, "LoadFromENV: ")
+		return errors.Wrap(err, "LoadFromENV")
 	}
 
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
-		return errors.Wrap(err, "LoadFromENV: ")
+		return errors.Wrap(err, "LoadFromENV")
 	}
 	conf.Port = uint(port)
 
