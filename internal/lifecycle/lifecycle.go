@@ -19,44 +19,39 @@ import (
 type Lifecycle struct {
 	services        types.Services
 	handlersFactory handlers.HandlersFactory
-	server          server.Server
+	server          *server.Server
 	config          config.Config
 }
 
 func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	lifecycle.config = *conf
 	logger.Init(conf)
-
-	lifecycle.services.Templates = &templates.TemplatesImpl{}
-	err := lifecycle.services.Templates.Init(conf)
+	err := error(nil)
+	lifecycle.services.Templates, err = templates.NewSimpleTextTemplates(conf)
 	if err != nil {
 		return err
 	}
-	lifecycle.services.EmailSender = &emailSender.GoMailSender{}
-	err = lifecycle.services.EmailSender.Init(conf)
-	if err != nil {
-		return err
-	}
-
-	lifecycle.services.RateAccessor = &rateAccessors.CoinApI{}
-	err = lifecycle.services.RateAccessor.Init(conf)
+	lifecycle.services.EmailSender, err = emailSender.NewGoMailSender(conf)
 	if err != nil {
 		return err
 	}
 
-	lifecycle.services.EmailStorage = &emailsStorage.EmailsStorageImpl{}
-	err = lifecycle.services.EmailStorage.Init(conf)
+	lifecycle.services.RateAccessor, err = rateAccessors.NewCoinAPI(conf)
 	if err != nil {
 		return err
 	}
 
-	lifecycle.handlersFactory = &handlers.HandlersFactoryImpl{}
-	err = lifecycle.handlersFactory.Init(conf, &lifecycle.services)
+	lifecycle.services.EmailStorage, err = emailsStorage.NewJsonEmailsStorage(conf)
 	if err != nil {
 		return err
 	}
 
-	err = lifecycle.server.Init(conf, lifecycle.handlersFactory)
+	lifecycle.handlersFactory, err = handlers.NewHandlersFactoryImpl(conf, &lifecycle.services)
+	if err != nil {
+		return err
+	}
+
+	lifecycle.server, err = server.NewServer(conf, lifecycle.handlersFactory)
 	if err != nil {
 		return err
 	}

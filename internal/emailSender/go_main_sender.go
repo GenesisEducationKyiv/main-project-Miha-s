@@ -15,7 +15,17 @@ type GoMailSender struct {
 	dialer  gomail.Dialer
 }
 
-func (sender *GoMailSender) Init(conf *config.Config) error {
+func NewGoMailSender(conf *config.Config) (*GoMailSender, error) {
+	newEmailSender := new(GoMailSender)
+	err := newEmailSender.init(conf)
+	if err != nil {
+		return nil, err
+	}
+
+	return newEmailSender, nil
+}
+
+func (sender *GoMailSender) init(conf *config.Config) error {
 	sender.dialer = *gomail.NewDialer(conf.EmailServiceUrl, conf.EmailServicePort,
 		conf.EmailToSendFrom, conf.EmailToSendFromPassword)
 

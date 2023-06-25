@@ -17,7 +17,16 @@ type Server struct {
 	port   uint
 }
 
-func (serv *Server) Init(conf *config.Config, handlersFactory handlers.HandlersFactory) error {
+func NewServer(conf *config.Config, handlersFactory handlers.HandlersFactory) (*Server, error) {
+	newServer := new(Server)
+	err := newServer.init(conf, handlersFactory)
+	if err != nil {
+		return nil, err
+	}
+	return newServer, nil
+}
+
+func (serv *Server) init(conf *config.Config, handlersFactory handlers.HandlersFactory) error {
 	serv.port = conf.Port
 
 	serv.router = chi.NewRouter()

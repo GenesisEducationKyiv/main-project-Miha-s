@@ -9,29 +9,30 @@ import (
 	"os"
 )
 
-type EmailsStorageImpl struct {
+type JsonEmailsStorage struct {
 	emails          map[string]struct{}
 	storageFilePath string
 	storageName     string
 	storageFile     *os.File
 }
 
-func fileExists(filepath string) bool {
-	info, err := os.Stat(filepath)
-	if os.IsNotExist(err) {
-		return false
+func NewJsonEmailsStorage(conf *config.Config) (*JsonEmailsStorage, error) {
+	newJsonEmailsStorage := new(JsonEmailsStorage)
+	err := newJsonEmailsStorage.init(conf)
+	if err != nil {
+		return nil, err
 	}
-	return !info.IsDir()
+	return newJsonEmailsStorage, nil
 }
 
-func (storage *EmailsStorageImpl) Init(conf *config.Config) error {
+func (storage *JsonEmailsStorage) init(conf *config.Config) error {
 	storage.storageName = "emails_storage.json"
 	storage.emails = make(map[string]struct{})
 	storage.storageFilePath = conf.EmailStoragePath + "/" + storage.storageName
 	return storage.initStorageFile()
 }
 
-func (storage *EmailsStorageImpl) initStorageFile() error {
+func (storage *JsonEmailsStorage) initStorageFile() error {
 	err := error(nil)
 	storage.storageFile, err = os.OpenFile(storage.storageFilePath, os.O_CREATE|os.O_RDWR, 0755)
 	if err != nil {
@@ -57,7 +58,7 @@ func getArrayFromSet(set map[string]struct{}) []string {
 	return result
 }
 
-func (storage *EmailsStorageImpl) Close() {
+func (storage *JsonEmailsStorage) Close() {
 	logger.LogInfo("Closing file storage")
 	err := storage.sync()
 	if err != nil {
@@ -69,25 +70,24 @@ func (storage *EmailsStorageImpl) Close() {
 	}
 }
 
-func (storage *EmailsStorageImpl) AddEmail(email string) error {
+func (storage *JsonEmailsStorage) AddEmail(email string) error {
 	if _, ok := storage.emails[email]; ok {
 		return errors.New("email alredy exists")
 	}
 	storage.emails[email] = struct{}{}
-	storage.sync()
-	return nil
+	return storage.sync()
 }
 
-func (storage *EmailsStorageImpl) GetAllEmails() *map[string]struct{} {
+func (storage *JsonEmailsStorage) GetAllEmails() *map[string]struct{} {
 	return &storage.emails
 }
 
-func (storage *EmailsStorageImpl) ValidateEmail(email string) bool {
+func (storage *JsonEmailsStorage) ValidateEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
 }
 
-func (storage *EmailsStorageImpl) uploadFromFile() error {
+func (storage *JsonEmailsStorage) uploadFromFile() error {
 	data, err := os.ReadFile(storage.storageFilePath)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (storage *EmailsStorageImpl) uploadFromFile() error {
 	return nil
 }
 
-func (storage *EmailsStorageImpl) sync() error {
+func (storage *JsonEmailsStorage) sync() error {
 	jsonMap := make(map[string][]string)
 	jsonMap["emails"] = getArrayFromSet(storage.emails)
 

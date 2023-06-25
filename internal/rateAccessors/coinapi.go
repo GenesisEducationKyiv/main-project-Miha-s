@@ -10,12 +10,21 @@ import (
 	"net/http"
 )
 
-type CoinApI struct {
+type CoinAPI struct {
 	endpoint string
 	apiKey   string
 }
 
-func (api *CoinApI) Init(conf *config.Config) error {
+func NewCoinAPI(conf *config.Config) (*CoinAPI, error) {
+	newCoinAPI := new(CoinAPI)
+	err := newCoinAPI.init(conf)
+	if err != nil {
+		return nil, err
+	}
+	return newCoinAPI, nil
+}
+
+func (api *CoinAPI) init(conf *config.Config) error {
 	api.endpoint = conf.CoinAPIUrl + conf.CurrencyFrom + "/" + conf.CurrencyTo
 	api.apiKey = conf.CoinAPIKey
 	return nil
@@ -33,7 +42,7 @@ func extractRate(jsonValue []byte) (float64, error) {
 	return rate, nil
 }
 
-func (api *CoinApI) GetCurrentRate() (float64, error) {
+func (api *CoinAPI) GetCurrentRate() (float64, error) {
 	value := 0.0
 	req, err := http.NewRequest(
 		http.MethodGet,
