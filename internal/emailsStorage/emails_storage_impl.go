@@ -13,6 +13,7 @@ type EmailsStorageImpl struct {
 	emails          map[string]struct{}
 	storageFilePath string
 	storageName     string
+	storageFile     *os.File
 }
 
 func fileExists(filepath string) bool {
@@ -27,10 +28,23 @@ func (storage *EmailsStorageImpl) Init(conf *config.Config) error {
 	storage.storageName = "emails_storage.json"
 	storage.emails = make(map[string]struct{})
 	storage.storageFilePath = conf.EmailStoragePath + "/" + storage.storageName
-	if !fileExists(storage.storageFilePath) {
+	return storage.initStorageFile()
+}
+
+func (storage *EmailsStorageImpl) initStorageFile() error {
+	err := error(nil)
+	storage.storageFile, err = os.OpenFile(storage.storageFilePath, os.O_CREATE|os.O_RDWR, 0755)
+	if err != nil {
+		return err
+	}
+	fileStats, err := storage.storageFile.Stat()
+	if err != nil {
+		return err
+	}
+	if fileStats.Size() == 0 {
 		return nil
 	}
-	return storage.openExistingStorage()
+	return storage.uploadFromFile()
 }
 
 func getArrayFromSet(set map[string]struct{}) []string {
@@ -45,25 +59,13 @@ func getArrayFromSet(set map[string]struct{}) []string {
 
 func (storage *EmailsStorageImpl) Close() {
 	logger.LogInfo("Closing file storage")
-	storageFile, err := os.Create(storage.storageFilePath)
-	defer storageFile.Close()
-
+	err := storage.sync()
 	if err != nil {
-		logger.LogError(err)
-		return
+		logger.LogErrorStr("Was not able to sync before closing file")
 	}
-	jsonMap := make(map[string][]string)
-	jsonMap["emails"] = getArrayFromSet(storage.emails)
-
-	jsonData, err := json.Marshal(jsonMap)
+	err = storage.storageFile.Close()
 	if err != nil {
-		logger.LogError(err)
-		return
-	}
-
-	_, err = storageFile.Write(jsonData)
-	if err != nil {
-		logger.LogErrorStr("Was not able to save storage")
+		logger.LogErrorStr("Was not able to close the file")
 	}
 }
 
@@ -72,6 +74,7 @@ func (storage *EmailsStorageImpl) AddEmail(email string) error {
 		return errors.New("email alredy exists")
 	}
 	storage.emails[email] = struct{}{}
+	storage.sync()
 	return nil
 }
 
@@ -84,7 +87,7 @@ func (storage *EmailsStorageImpl) ValidateEmail(email string) bool {
 	return err == nil
 }
 
-func (storage *EmailsStorageImpl) openExistingStorage() error {
+func (storage *EmailsStorageImpl) uploadFromFile() error {
 	data, err := os.ReadFile(storage.storageFilePath)
 	if err != nil {
 		return err
@@ -100,5 +103,31 @@ func (storage *EmailsStorageImpl) openExistingStorage() error {
 		storage.emails[email.(string)] = struct{}{}
 	}
 
+	return nil
+}
+
+func (storage *EmailsStorageImpl) sync() error {
+	jsonMap := make(map[string][]string)
+	jsonMap["emails"] = getArrayFromSet(storage.emails)
+
+	jsonData, err := json.Marshal(jsonMap)
+	if err != nil {
+		logger.LogError(err)
+		return err
+	}
+	err = storage.storageFile.Truncate(0)
+	if err != nil {
+		logger.LogError(err)
+		return err
+	}
+	_, err = storage.storageFile.Seek(0, 0)
+	if err != nil {
+		logger.LogError(err)
+		return err
+	}
+	_, err = storage.storageFile.Write(jsonData)
+	if err != nil {
+		logger.LogErrorStr("Was not able to save to storage")
+	}
 	return nil
 }
