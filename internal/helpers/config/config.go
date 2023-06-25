@@ -4,6 +4,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/pkg/errors"
+
 	"github.com/joho/godotenv"
 )
 
@@ -19,17 +21,19 @@ type Config struct {
 	CoinAPIKey              string
 	CurrencyFrom            string
 	CurrencyTo              string
+	LogLevel                string
+	LogFile                 string
 }
 
 func (conf *Config) LoadFromENV() error {
 	err := godotenv.Load(".env")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "LoadFromENV: ")
 	}
 
 	port, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "LoadFromENV: ")
 	}
 	conf.Port = uint(port)
 
@@ -45,6 +49,9 @@ func (conf *Config) LoadFromENV() error {
 	conf.EmailServicePort, _ = strconv.Atoi(os.Getenv("EMAIL_SERVICE_PORT"))
 	conf.EmailToSendFrom = os.Getenv("EMAIL_TO_SEND_FROM")
 	conf.EmailToSendFromPassword = os.Getenv("EMAIL_TO_SEND_FROM_PASSWORD")
+
+	conf.LogLevel = os.Getenv("LOG_LEVEL")
+	conf.LogFile = os.Getenv("LOG_FILE")
 
 	return nil
 }

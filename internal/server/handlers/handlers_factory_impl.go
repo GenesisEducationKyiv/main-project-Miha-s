@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"btc-test-task/internal/config"
-	"btc-test-task/internal/types"
+	"btc-test-task/internal/helpers/config"
+	"btc-test-task/internal/helpers/types"
 )
 
 type HandlersFactoryImpl struct {

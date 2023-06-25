@@ -1,19 +1,20 @@
 package lifecycle
 
 import (
-	"btc-test-task/internal/config"
 	"btc-test-task/internal/emailSender"
 	"btc-test-task/internal/emailsStorage"
-	"btc-test-task/internal/handlers"
-	"btc-test-task/internal/logger"
+	"btc-test-task/internal/helpers/config"
+	"btc-test-task/internal/helpers/logger"
+	"btc-test-task/internal/helpers/templates"
+	"btc-test-task/internal/helpers/types"
 	"btc-test-task/internal/rateAccessors"
 	"btc-test-task/internal/server"
-	"btc-test-task/internal/templates"
-	"btc-test-task/internal/types"
-	"fmt"
+	"btc-test-task/internal/server/handlers"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/pkg/errors"
 )
 
 type Lifecycle struct {
@@ -29,32 +30,34 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	err := error(nil)
 	lifecycle.services.Templates, err = templates.NewSimpleTextTemplates(conf)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Init: ")
 	}
 	lifecycle.services.EmailSender, err = emailSender.NewGoMailSender(conf)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Init: ")
 	}
 
 	lifecycle.services.RateAccessor, err = rateAccessors.NewCoinAPI(conf)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Init: ")
 	}
 
 	lifecycle.services.EmailStorage, err = emailsStorage.NewJsonEmailsStorage(conf)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Init: ")
 	}
 
 	lifecycle.handlersFactory, err = handlers.NewHandlersFactoryImpl(conf, &lifecycle.services)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Init: ")
 	}
 
 	lifecycle.server, err = server.NewServer(conf, lifecycle.handlersFactory)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Init: ")
 	}
+
+	logger.Log.Infof("The server is listening on port: %v", conf.Port)
 
 	return nil
 }
@@ -73,12 +76,12 @@ func (lifecycle *Lifecycle) Run() error {
 
 	select {
 	case <-signals:
-		logger.LogInfo("Signal was received, shutting down...")
+		logger.Log.Info("Signal was received, shutting down...")
 	case err := <-done:
 		if err != nil {
-			logger.LogErrorStr(fmt.Sprintf("Server crashed with error %v", err))
+			logger.Log.Errorf("Server crashed with error %v", err)
 		} else {
-			logger.LogInfo("Server finished its work, shutting down...")
+			logger.Log.Info("Server finished its work, shutting down...")
 		}
 	}
 	return nil

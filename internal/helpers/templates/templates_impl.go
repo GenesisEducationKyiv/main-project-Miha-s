@@ -1,7 +1,7 @@
 package templates
 
 import (
-	"btc-test-task/internal/config"
+	"btc-test-task/internal/helpers/config"
 	"fmt"
 )
 

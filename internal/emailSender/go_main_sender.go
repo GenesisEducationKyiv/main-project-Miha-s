@@ -1,12 +1,11 @@
 package emailSender
 
 import (
-	"btc-test-task/internal/config"
-	"btc-test-task/internal/logger"
-
+	"btc-test-task/internal/helpers/config"
+	"btc-test-task/internal/helpers/logger"
 	"crypto/tls"
 
-	gomail "gopkg.in/gomail.v2"
+	"gopkg.in/gomail.v2"
 )
 
 type GoMailSender struct {
@@ -45,8 +44,8 @@ func (sender *GoMailSender) SendEmail(recipient, body string) error {
 	message.SetBody("text/plain", body)
 
 	if err := sender.dialer.DialAndSend(message); err != nil {
-		logger.LogError(err)
-		return err
+		logger.Log.Error(err)
+		return ErrFailedToSendEmail
 	}
 	return nil
 }
@@ -55,7 +54,7 @@ func (sender *GoMailSender) BroadcastEmails(recipients *map[string]struct{}, bod
 	for email := range *recipients {
 		err := sender.SendEmail(email, body)
 		if err != nil {
-			logger.LogWarn("Was not able to send email")
+			logger.Log.Warn(err)
 		}
 	}
 }
