@@ -1,4 +1,4 @@
-package rate_accessors
+package rateAccessors
 
 import (
 	"btc-test-task/internal/config"
@@ -12,12 +12,12 @@ import (
 
 type CoinApI struct {
 	endpoint string
-	api_key  string
+	apiKey   string
 }
 
 func (api *CoinApI) Init(conf *config.Config) error {
 	api.endpoint = conf.CoinAPIUrl + conf.CurrencyFrom + "/" + conf.CurrencyTo
-	api.api_key = conf.CoinAPIKey
+	api.apiKey = conf.CoinAPIKey
 	return nil
 }
 
@@ -45,7 +45,7 @@ func (api *CoinApI) GetCurrentRate() (float64, error) {
 		return value, err
 	}
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("X-CoinAPI-Key", api.api_key)
+	req.Header.Add("X-CoinAPI-Key", api.apiKey)
 	res, err := http.DefaultClient.Do(req)
 	defer res.Body.Close()
 	if err != nil {

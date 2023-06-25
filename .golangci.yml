@@ -7,9 +7,4 @@ linters:
     - gosimple
     - goconst
     - bodyclose
-    - whitespace
-  revive:
-    rules:
-      - name: var-naming
-        severity: warning
-        disabled: false
+    - nosnakecase

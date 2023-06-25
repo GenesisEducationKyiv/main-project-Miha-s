@@ -1,4 +1,4 @@
-package emails_storage
+package emailsStorage
 
 import (
 	"btc-test-task/internal/config"
@@ -10,9 +10,9 @@ import (
 )
 
 type EmailsStorageImpl struct {
-	emails            map[string]struct{}
-	storage_file_path string
-	storage_name      string
+	emails          map[string]struct{}
+	storageFilePath string
+	storageName     string
 }
 
 func fileExists(filepath string) bool {
@@ -24,10 +24,10 @@ func fileExists(filepath string) bool {
 }
 
 func (storage *EmailsStorageImpl) Init(conf *config.Config) error {
-	storage.storage_name = "emails_storage.json"
+	storage.storageName = "emails_storage.json"
 	storage.emails = make(map[string]struct{})
-	storage.storage_file_path = conf.EmailStoragePath + "/" + storage.storage_name
-	if !fileExists(storage.storage_file_path) {
+	storage.storageFilePath = conf.EmailStoragePath + "/" + storage.storageName
+	if !fileExists(storage.storageFilePath) {
 		return nil
 	}
 	return storage.openExistingStorage()
@@ -45,23 +45,23 @@ func getArrayFromSet(set map[string]struct{}) []string {
 
 func (storage *EmailsStorageImpl) Close() {
 	logger.LogInfo("Closing file storage")
-	storage_file, err := os.Create(storage.storage_file_path)
-	defer storage_file.Close()
+	storageFile, err := os.Create(storage.storageFilePath)
+	defer storageFile.Close()
 
 	if err != nil {
 		logger.LogError(err)
 		return
 	}
-	json_map := make(map[string][]string)
-	json_map["emails"] = getArrayFromSet(storage.emails)
+	jsonMap := make(map[string][]string)
+	jsonMap["emails"] = getArrayFromSet(storage.emails)
 
-	json_data, err := json.Marshal(json_map)
+	jsonData, err := json.Marshal(jsonMap)
 	if err != nil {
 		logger.LogError(err)
 		return
 	}
 
-	_, err = storage_file.Write(json_data)
+	_, err = storageFile.Write(jsonData)
 	if err != nil {
 		logger.LogErrorStr("Was not able to save storage")
 	}
@@ -85,18 +85,18 @@ func (storage *EmailsStorageImpl) ValidateEmail(email string) bool {
 }
 
 func (storage *EmailsStorageImpl) openExistingStorage() error {
-	data, err := os.ReadFile(storage.storage_file_path)
+	data, err := os.ReadFile(storage.storageFilePath)
 	if err != nil {
 		return err
 	}
-	var json_map map[string]interface{}
-	err = json.Unmarshal(data, &json_map)
+	var jsonMap map[string]interface{}
+	err = json.Unmarshal(data, &jsonMap)
 	if err != nil {
 		return err
 	}
-	json_array := json_map["emails"].([]interface{})
+	jsonArray := jsonMap["emails"].([]interface{})
 
-	for _, email := range json_array {
+	for _, email := range jsonArray {
 		storage.emails[email.(string)] = struct{}{}
 	}
 

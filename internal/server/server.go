@@ -17,7 +17,7 @@ type Server struct {
 	port   uint
 }
 
-func (serv *Server) Init(conf *config.Config, handlers_factory handlers.HandlersFactory) error {
+func (serv *Server) Init(conf *config.Config, handlersFactory handlers.HandlersFactory) error {
 	serv.port = conf.Port
 
 	serv.router = chi.NewRouter()
@@ -29,9 +29,9 @@ func (serv *Server) Init(conf *config.Config, handlers_factory handlers.Handlers
 	serv.router.Use(middleware.Timeout(60 * time.Second))
 
 	serv.router.Route("/api", func(r chi.Router) {
-		r.Get("/rate", handlers_factory.CreateRate())
-		r.Post("/subscribe", handlers_factory.CreateSubscribe())
-		r.Post("/sendEmails", handlers_factory.CreateSendEmails())
+		r.Get("/rate", handlersFactory.CreateRate())
+		r.Post("/subscribe", handlersFactory.CreateSubscribe())
+		r.Post("/sendEmails", handlersFactory.CreateSendEmails())
 	})
 
 	return nil

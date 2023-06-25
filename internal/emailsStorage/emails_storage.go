@@ -1,4 +1,4 @@
-package emails_storage
+package emailsStorage
 
 import "btc-test-task/internal/config"
 

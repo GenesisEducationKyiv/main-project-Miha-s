@@ -1,4 +1,4 @@
-package email_sender
+package emailSender
 
 import (
 	"btc-test-task/internal/config"

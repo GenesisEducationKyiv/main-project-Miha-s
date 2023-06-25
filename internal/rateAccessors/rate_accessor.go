@@ -1,4 +1,4 @@
-package rate_accessors
+package rateAccessors
 
 import (
 	"btc-test-task/internal/config"

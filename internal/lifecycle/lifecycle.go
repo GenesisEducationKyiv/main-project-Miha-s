@@ -2,11 +2,11 @@ package lifecycle
 
 import (
 	"btc-test-task/internal/config"
-	"btc-test-task/internal/email_sender"
-	"btc-test-task/internal/emails_storage"
+	"btc-test-task/internal/emailSender"
+	"btc-test-task/internal/emailsStorage"
 	"btc-test-task/internal/handlers"
 	"btc-test-task/internal/logger"
-	"btc-test-task/internal/rate_accessors"
+	"btc-test-task/internal/rateAccessors"
 	"btc-test-task/internal/server"
 	"btc-test-task/internal/templates"
 	"btc-test-task/internal/types"
@@ -17,10 +17,10 @@ import (
 )
 
 type Lifecycle struct {
-	services         types.Services
-	handlers_factory handlers.HandlersFactory
-	server           server.Server
-	config           config.Config
+	services        types.Services
+	handlersFactory handlers.HandlersFactory
+	server          server.Server
+	config          config.Config
 }
 
 func (lifecycle *Lifecycle) Init(conf *config.Config) error {
@@ -32,31 +32,31 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	if err != nil {
 		return err
 	}
-	lifecycle.services.EmailSender = &email_sender.GoMailSender{}
+	lifecycle.services.EmailSender = &emailSender.GoMailSender{}
 	err = lifecycle.services.EmailSender.Init(conf)
 	if err != nil {
 		return err
 	}
 
-	lifecycle.services.RateAccessor = &rate_accessors.CoinApI{}
+	lifecycle.services.RateAccessor = &rateAccessors.CoinApI{}
 	err = lifecycle.services.RateAccessor.Init(conf)
 	if err != nil {
 		return err
 	}
 
-	lifecycle.services.EmailStorage = &emails_storage.EmailsStorageImpl{}
+	lifecycle.services.EmailStorage = &emailsStorage.EmailsStorageImpl{}
 	err = lifecycle.services.EmailStorage.Init(conf)
 	if err != nil {
 		return err
 	}
 
-	lifecycle.handlers_factory = &handlers.HandlersFactoryImpl{}
-	err = lifecycle.handlers_factory.Init(conf, &lifecycle.services)
+	lifecycle.handlersFactory = &handlers.HandlersFactoryImpl{}
+	err = lifecycle.handlersFactory.Init(conf, &lifecycle.services)
 	if err != nil {
 		return err
 	}
 
-	err = lifecycle.server.Init(conf, lifecycle.handlers_factory)
+	err = lifecycle.server.Init(conf, lifecycle.handlersFactory)
 	if err != nil {
 		return err
 	}
