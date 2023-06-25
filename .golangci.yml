@@ -7,4 +7,3 @@ linters:
     - gosimple
     - goconst
     - bodyclose
-    - nosnakecase
