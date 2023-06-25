@@ -50,8 +50,8 @@ func (sender *GoMailSender) SendEmail(recipient, body string) error {
 	return nil
 }
 
-func (sender *GoMailSender) BroadcastEmails(recipients *map[string]struct{}, body string) {
-	for email := range *recipients {
+func (sender *GoMailSender) BroadcastEmails(recipients map[string]struct{}, body string) {
+	for email := range recipients {
 		err := sender.SendEmail(email, body)
 		if err != nil {
 			logger.Log.Warn(err)

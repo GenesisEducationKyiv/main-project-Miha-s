@@ -27,7 +27,7 @@ func NewJsonEmailsStorage(conf *config.Config) (*JsonEmailsStorage, error) {
 }
 
 func (storage *JsonEmailsStorage) init(conf *config.Config) error {
-	storage.storageName = "emails_storage.json"
+	storage.storageName = conf.EmailStorageName
 	storage.emails = make(map[string]struct{})
 	storage.storageFilePath = conf.EmailStoragePath + "/" + storage.storageName
 	return storage.initStorageFile()
@@ -77,6 +77,10 @@ func (storage *JsonEmailsStorage) Close() {
 }
 
 func (storage *JsonEmailsStorage) AddEmail(email string) error {
+	if !storage.ValidateEmail(email) {
+		return ErrInvalidEmailAddress
+	}
+
 	if _, ok := storage.emails[email]; ok {
 		return ErrEmailAlreadyExists
 	}
@@ -84,8 +88,8 @@ func (storage *JsonEmailsStorage) AddEmail(email string) error {
 	return storage.sync()
 }
 
-func (storage *JsonEmailsStorage) GetAllEmails() *map[string]struct{} {
-	return &storage.emails
+func (storage *JsonEmailsStorage) GetAllEmails() map[string]struct{} {
+	return storage.emails
 }
 
 func (storage *JsonEmailsStorage) ValidateEmail(email string) bool {

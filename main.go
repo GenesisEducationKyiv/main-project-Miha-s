@@ -8,7 +8,7 @@ import (
 
 func main() {
 	var conf config.Config
-	err := conf.LoadFromENV()
+	err := conf.LoadFromENV(".env")
 	if err != nil {
 		panic(1)
 	}
