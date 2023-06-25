@@ -18,6 +18,5 @@ func (factory *HandlersFactoryImpl) CreateSendEmails() http.HandlerFunc {
 		go factory.services.EmailSender.BroadcastEmails(emails, factory.services.Templates.CurrencyRate(rate))
 
 		w.WriteHeader(http.StatusOK)
-
 	})
 }

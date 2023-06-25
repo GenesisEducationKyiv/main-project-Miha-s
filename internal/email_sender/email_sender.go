@@ -1,6 +1,6 @@
 package email_sender
 
-import 	"btc-test-task/internal/config"
+import "btc-test-task/internal/config"
 
 type EmailSender interface {
 	Init(conf *config.Config) error

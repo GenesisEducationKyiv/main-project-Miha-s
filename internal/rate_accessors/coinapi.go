@@ -47,6 +47,7 @@ func (api *CoinApI) GetCurrentRate() (float64, error) {
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("X-CoinAPI-Key", api.api_key)
 	res, err := http.DefaultClient.Do(req)
+	defer res.Body.Close()
 	if err != nil {
 		return value, err
 	}

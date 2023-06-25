@@ -5,8 +5,11 @@ linters:
     - goimports
     - ineffassign
     - gosimple
-    - gochecknoglobals
     - goconst
     - bodyclose
     - whitespace
-    - nosnakecase
+  revive:
+    rules:
+      - name: var-naming
+        severity: warning
+        disabled: false

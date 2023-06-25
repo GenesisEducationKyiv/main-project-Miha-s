@@ -1,15 +1,15 @@
 package logger
 
 import (
+	"btc-test-task/internal/config"
 	"log"
 	"os"
-	"btc-test-task/internal/config"
 )
 
 var (
 	warningLogger *log.Logger
-	infoLogger *log.Logger
-	errorLogger *log.Logger
+	infoLogger    *log.Logger
+	errorLogger   *log.Logger
 )
 
 func LogInfo(str string) {

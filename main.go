@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-
 	var conf config.Config
 	err := conf.LoadFromENV()
 	if err != nil {
@@ -26,5 +25,4 @@ func main() {
 		logger.LogError(err)
 		return
 	}
-
 }

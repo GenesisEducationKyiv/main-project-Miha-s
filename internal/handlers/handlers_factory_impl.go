@@ -3,7 +3,6 @@ package handlers
 import (
 	"btc-test-task/internal/config"
 	"btc-test-task/internal/types"
-
 )
 
 type HandlersFactoryImpl struct {
@@ -14,4 +13,3 @@ func (factory *HandlersFactoryImpl) Init(conf *config.Config, services *types.Se
 	factory.services = services
 	return nil
 }
-

@@ -9,7 +9,7 @@ func (factory *HandlersFactoryImpl) CreateSubscribe() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		email := r.FormValue("email")
 		valid := factory.services.EmailStorage.ValidateEmail(email)
-		if valid != true {
+		if !valid {
 			logger.LogErrorStr("Incorrect email")
 			w.WriteHeader(http.StatusBadRequest)
 			return
