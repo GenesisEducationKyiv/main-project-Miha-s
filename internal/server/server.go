@@ -1,8 +1,8 @@
 package server
 
 import (
-	"btc-test-task/internal/config"
-	"btc-test-task/internal/handlers"
+	"btc-test-task/internal/helpers/config"
+	"btc-test-task/internal/server/handlers"
 	"fmt"
 
 	"net/http"
@@ -17,7 +17,16 @@ type Server struct {
 	port   uint
 }
 
-func (serv *Server) Init(conf *config.Config, handlers_factory handlers.HandlersFactory) error {
+func NewServer(conf *config.Config, handlersFactory handlers.HandlersFactory) (*Server, error) {
+	newServer := new(Server)
+	err := newServer.init(conf, handlersFactory)
+	if err != nil {
+		return nil, err
+	}
+	return newServer, nil
+}
+
+func (serv *Server) init(conf *config.Config, handlersFactory handlers.HandlersFactory) error {
 	serv.port = conf.Port
 
 	serv.router = chi.NewRouter()
@@ -29,9 +38,9 @@ func (serv *Server) Init(conf *config.Config, handlers_factory handlers.Handlers
 	serv.router.Use(middleware.Timeout(60 * time.Second))
 
 	serv.router.Route("/api", func(r chi.Router) {
-		r.Get("/rate", handlers_factory.CreateRate())
-		r.Post("/subscribe", handlers_factory.CreateSubscribe())
-		r.Post("/sendEmails", handlers_factory.CreateSendEmails())
+		r.Get("/rate", handlersFactory.CreateRate())
+		r.Post("/subscribe", handlersFactory.CreateSubscribe())
+		r.Post("/sendEmails", handlersFactory.CreateSendEmails())
 	})
 
 	return nil

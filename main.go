@@ -1,30 +1,28 @@
 package main
 
 import (
-	"btc-test-task/internal/config"
+	"btc-test-task/internal/helpers/config"
+	"btc-test-task/internal/helpers/logger"
 	"btc-test-task/internal/lifecycle"
-	"btc-test-task/internal/logger"
 )
 
 func main() {
-
 	var conf config.Config
 	err := conf.LoadFromENV()
 	if err != nil {
 		panic(1)
 	}
 
-	var lifecycle lifecycle.Lifecycle
-	err = lifecycle.Init(&conf)
+	var lifeCycle lifecycle.Lifecycle
+	err = lifeCycle.Init(&conf)
 	if err != nil {
-		logger.LogError(err)
+		logger.Log.Error(err)
 		return
 	}
 
-	err = lifecycle.Run()
+	err = lifeCycle.Run()
 	if err != nil {
-		logger.LogError(err)
+		logger.Log.Error(err)
 		return
 	}
-
 }

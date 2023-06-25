@@ -5,5 +5,3 @@ services:
     image: btc-test-task
     ports:
       - '2777:2777'
-    expose:
-      - '2777'
