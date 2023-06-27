@@ -13,13 +13,13 @@ func (factory *HandlersFactoryImpl) CreateSubscribe() http.HandlerFunc {
 		email := r.FormValue("email")
 		valid := factory.services.EmailStorage.ValidateEmail(email)
 		if !valid {
-			logger.Log.Error("Incorrect email")
+			logger.Log.Info("Incorrect email")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		err := factory.services.EmailStorage.AddEmail(email)
 		if errors.Is(err, emailsStorage.ErrEmailAlreadyExists) {
-			logger.Log.Warn(err)
+			logger.Log.Info(err)
 			w.WriteHeader(http.StatusConflict)
 			return
 		} else if err != nil {

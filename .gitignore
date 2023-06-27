@@ -22,3 +22,6 @@ go.work
 
 # Email storage
 emails_storage.json
+
+# IDE files
+.idea

@@ -1,6 +1,7 @@
-package emailsStorage
+package emailsStorageTest
 
 import (
+	"btc-test-task/internal/emailsStorage"
 	"btc-test-task/internal/helpers/config"
 	"btc-test-task/internal/helpers/logger"
 	"os"
@@ -18,7 +19,7 @@ var (
 )
 
 func globalSetup() error {
-	err := conf.LoadFromENV("../../.env.test")
+	err := conf.LoadFromENV("../../../.env.test")
 	if err != nil {
 		return err
 	}
@@ -49,7 +50,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCreateEmailFile(t *testing.T) {
-	_, err := NewJsonEmailsStorage(&conf)
+	_, err := emailsStorage.NewJsonEmailsStorage(&conf)
 	if err != nil {
 		t.Errorf("failed to create storage file, %v", err)
 		return
@@ -58,7 +59,7 @@ func TestCreateEmailFile(t *testing.T) {
 }
 
 func TestAddEmail(t *testing.T) {
-	storage, _ := NewJsonEmailsStorage(&conf)
+	storage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
 	err := storage.AddEmail(email1)
 	if err != nil {
 		t.Errorf("failed to add email %v", err)
@@ -80,17 +81,17 @@ func TestAddEmail(t *testing.T) {
 }
 
 func TestErrorEmailExists(t *testing.T) {
-	storage, _ := NewJsonEmailsStorage(&conf)
+	storage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
 	_ = storage.AddEmail(email1)
 	err := storage.AddEmail(email1)
-	if !errors.Is(err, ErrEmailAlreadyExists) {
+	if !errors.Is(err, emailsStorage.ErrEmailAlreadyExists) {
 		t.Errorf("incorrect error when adding same email %v", err)
 	}
 	tearDown()
 }
 
 func TestValidEmail(t *testing.T) {
-	storage, _ := NewJsonEmailsStorage(&conf)
+	storage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
 	ok := storage.ValidateEmail(email3)
 	if !ok {
 		t.Errorf("failed to vaildate valid email %v", email1)
@@ -103,12 +104,12 @@ func TestValidEmail(t *testing.T) {
 }
 
 func TestLoadFromPersistence(t *testing.T) {
-	storage, _ := NewJsonEmailsStorage(&conf)
+	storage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
 	_ = storage.AddEmail(email1)
 	_ = storage.AddEmail(email2)
 	storage.Close()
 
-	newStorage, _ := NewJsonEmailsStorage(&conf)
+	newStorage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
 	allEmails := newStorage.GetAllEmails()
 	_, ok := allEmails[email1]
 	if !ok {
