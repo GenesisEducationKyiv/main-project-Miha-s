@@ -72,5 +72,5 @@ func (api *CoinAPI) GetCurrentRate() (float64, error) {
 	}
 
 	logger.Log.Infof("The rate %v", value)
-	return value, err
+	return value, nil
 }

@@ -22,14 +22,17 @@ func globalSetup() error {
 	if err != nil {
 		return err
 	}
-	_ = logger.Init(&conf)
+	err = logger.Init(&conf)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func TestMain(m *testing.M) {
 	err := globalSetup()
 	if err != nil {
-		os.Exit(2)
+		panic(fmt.Sprintf("failed to setup test %v", err))
 	}
 	code := m.Run()
 

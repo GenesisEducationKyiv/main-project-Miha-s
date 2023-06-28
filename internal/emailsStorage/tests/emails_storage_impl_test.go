@@ -4,6 +4,7 @@ import (
 	"btc-test-task/internal/emailsStorage"
 	"btc-test-task/internal/helpers/config"
 	"btc-test-task/internal/helpers/logger"
+	"fmt"
 	"os"
 	"testing"
 
@@ -27,7 +28,10 @@ func globalSetup() error {
 	if err != nil {
 		return err
 	}
-	_ = logger.Init(&conf)
+	err = logger.Init(&conf)
+	if err != nil {
+		return err
+	}
 	email1 = "email1@gmail.com"
 	email2 = "email2@genesis.com"
 	email3 = "email3@ukr.net"
@@ -35,63 +39,79 @@ func globalSetup() error {
 	return nil
 }
 
-func tearDown() {
-	_ = os.Remove(conf.EmailStoragePath + "/" + conf.EmailStorageName)
+func tearDown(t *testing.T) {
+	err := os.Remove(conf.EmailStoragePath + "/" + conf.EmailStorageName)
+	if err != nil {
+		t.Fatalf("Failed to remove starage %v", err)
+	}
 }
 
 func TestMain(m *testing.M) {
 	err := globalSetup()
 	if err != nil {
-		os.Exit(2)
+		panic(fmt.Sprintf("failed to setup test %v", err))
 	}
 	code := m.Run()
 	_ = os.RemoveAll(conf.EmailStoragePath)
 	os.Exit(code)
 }
 
+func storageInitializationTest(err error, t *testing.T) {
+	if err != nil {
+		t.Fatalf("failed to initialize storage %v", err)
+	}
+}
+
+func addEmailTest(err error, email string, t *testing.T) {
+	if err != nil {
+		t.Fatalf("failed to add email %v, because of error %v", email, err)
+	}
+}
+
+func missingEmailTest(exists bool, email string, t *testing.T) {
+	if !exists {
+		t.Fatalf("missing email %v", email)
+	}
+}
+
 func TestCreateEmailFile(t *testing.T) {
 	_, err := emailsStorage.NewJsonEmailsStorage(&conf)
-	if err != nil {
-		t.Errorf("failed to create storage file, %v", err)
-		return
-	}
-	tearDown()
+	storageInitializationTest(err, t)
+	tearDown(t)
 }
 
 func TestAddEmail(t *testing.T) {
-	storage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
-	err := storage.AddEmail(email1)
-	if err != nil {
-		t.Errorf("failed to add email %v", err)
-		return
-	}
-	_ = storage.AddEmail(email2)
+	storage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	storageInitializationTest(err, t)
+	err = storage.AddEmail(email1)
+	addEmailTest(err, email1, t)
+	err = storage.AddEmail(email2)
+	addEmailTest(err, email2, t)
 
 	allEmails := storage.GetAllEmails()
 	_, ok := allEmails[email1]
-	if !ok {
-		t.Errorf("missing email %v", email1)
-	}
+	missingEmailTest(ok, email1, t)
 
 	_, ok = allEmails[email2]
-	if !ok {
-		t.Errorf("missing email %v", email2)
-	}
-	tearDown()
+	missingEmailTest(ok, email2, t)
+	tearDown(t)
 }
 
 func TestErrorEmailExists(t *testing.T) {
-	storage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
-	_ = storage.AddEmail(email1)
-	err := storage.AddEmail(email1)
+	storage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	storageInitializationTest(err, t)
+	err = storage.AddEmail(email1)
+	addEmailTest(err, email1, t)
+	err = storage.AddEmail(email1)
 	if !errors.Is(err, emailsStorage.ErrEmailAlreadyExists) {
 		t.Errorf("incorrect error when adding same email %v", err)
 	}
-	tearDown()
+	tearDown(t)
 }
 
 func TestValidEmail(t *testing.T) {
-	storage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
+	storage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	storageInitializationTest(err, t)
 	ok := storage.ValidateEmail(email3)
 	if !ok {
 		t.Errorf("failed to vaildate valid email %v", email1)
@@ -100,25 +120,25 @@ func TestValidEmail(t *testing.T) {
 	if ok {
 		t.Errorf("failed to validate invalid email %v", badEmail)
 	}
-	tearDown()
+	tearDown(t)
 }
 
 func TestLoadFromPersistence(t *testing.T) {
-	storage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
-	_ = storage.AddEmail(email1)
-	_ = storage.AddEmail(email2)
+	storage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	storageInitializationTest(err, t)
+	err = storage.AddEmail(email1)
+	addEmailTest(err, email1, t)
+	err = storage.AddEmail(email2)
+	addEmailTest(err, email2, t)
 	storage.Close()
 
-	newStorage, _ := emailsStorage.NewJsonEmailsStorage(&conf)
+	newStorage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	storageInitializationTest(err, t)
 	allEmails := newStorage.GetAllEmails()
 	_, ok := allEmails[email1]
-	if !ok {
-		t.Errorf("missing email %v", email1)
-	}
+	missingEmailTest(ok, email1, t)
 
 	_, ok = allEmails[email2]
-	if !ok {
-		t.Errorf("missing email %v", email2)
-	}
-	tearDown()
+	missingEmailTest(ok, email2, t)
+	tearDown(t)
 }
