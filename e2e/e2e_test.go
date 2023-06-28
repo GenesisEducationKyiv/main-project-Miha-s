@@ -30,6 +30,7 @@ func TestSubscribe(t *testing.T) {
 	emailToSubscribe := "someemail@gmail.com"
 	resp, err := http.Post(fmt.Sprintf("http://localhost:%v/api/subscribe", conf.Port),
 		"application/x-www-form-urlencoded", bytes.NewReader([]byte("email="+emailToSubscribe)))
+	defer resp.Body.Close()
 
 	if err != nil {
 		t.Fatalf("failed to send request %v", err)
@@ -43,6 +44,7 @@ func TestSubscribe(t *testing.T) {
 func TestGetRate(t *testing.T) {
 	expectedResponseStatus := http.StatusOK
 	resp, err := http.Get(fmt.Sprintf("http://localhost:%v/api/rate", conf.Port))
+	defer resp.Body.Close()
 
 	if err != nil {
 		t.Fatalf("failed to send request %v", err)
