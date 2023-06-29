@@ -10,7 +10,6 @@ import (
 
 func (factory *HandlersFactoryImpl) CreateRate() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Log.Info("some info")
 		rate, err := factory.services.RateAccessor.GetCurrentRate(factory.currencyFrom, factory.currencyTo)
 		if errors.Is(err, rateAccessors.ErrFailedToGetRate) {
 			logger.Log.Warn(err)

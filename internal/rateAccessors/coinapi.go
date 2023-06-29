@@ -26,7 +26,7 @@ func NewCoinAPI(conf *config.Config) (*CoinAPI, error) {
 }
 
 func (api *CoinAPI) init(conf *config.Config) error {
-	api.endpoint = conf.CoinAPIUrl + conf.CurrencyFrom + "/" + conf.CurrencyTo
+	api.endpoint = conf.CoinAPIUrl
 	api.apiKey = conf.CoinAPIKey
 	return nil
 }
