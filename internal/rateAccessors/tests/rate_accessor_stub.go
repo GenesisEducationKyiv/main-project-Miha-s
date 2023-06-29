@@ -5,6 +5,6 @@ type RateAccessorStub struct {
 	Rate      float64
 }
 
-func (accessor *RateAccessorStub) GetCurrentRate() (float64, error) {
+func (accessor *RateAccessorStub) GetCurrentRate(currencyFrom string, currencyTo string) (float64, error) {
 	return accessor.Rate, accessor.RateError
 }

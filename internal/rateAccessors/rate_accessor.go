@@ -1,5 +1,5 @@
 package rateAccessors
 
 type RateAccessor interface {
-	GetCurrentRate() (float64, error)
+	GetCurrentRate(currencyFrom string, currencyTo string) (float64, error)
 }
