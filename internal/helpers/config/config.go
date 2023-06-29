@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	Port                    uint
+	EmailStorageName        string
 	EmailStoragePath        string
 	EmailToSendFrom         string
 	EmailToSendFromPassword string
@@ -25,8 +26,8 @@ type Config struct {
 	LogFile                 string
 }
 
-func (conf *Config) LoadFromENV() error {
-	err := godotenv.Load(".env")
+func (conf *Config) LoadFromENV(envFilePath string) error {
+	err := godotenv.Load(envFilePath)
 	if err != nil {
 		return errors.Wrap(err, "LoadFromENV")
 	}
@@ -42,6 +43,7 @@ func (conf *Config) LoadFromENV() error {
 	conf.CurrencyFrom = os.Getenv("CURRENCY_FROM")
 	conf.CurrencyTo = os.Getenv("CURRENCY_TO")
 
+	conf.EmailStorageName = os.Getenv("EMAIL_STORAGE_NAME")
 	conf.EmailStoragePath = os.Getenv("EMAIL_STORAGE_PATH")
 	conf.EmailSubject = os.Getenv("EMAIL_SUBJECT")
 
