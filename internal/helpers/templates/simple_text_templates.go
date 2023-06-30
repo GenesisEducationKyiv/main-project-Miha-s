@@ -11,19 +11,10 @@ type SimpleTextTemplates struct {
 }
 
 func NewSimpleTextTemplates(conf *config.Config) (*SimpleTextTemplates, error) {
-	newSimpleTextTemplates := new(SimpleTextTemplates)
-	err := newSimpleTextTemplates.init(conf)
-	if err != nil {
-		return nil, err
-	}
-
-	return newSimpleTextTemplates, nil
-}
-
-func (template *SimpleTextTemplates) init(conf *config.Config) error {
-	template.CurrencyFrom = conf.CurrencyFrom
-	template.CurrencyTo = conf.CurrencyTo
-	return nil
+	return &SimpleTextTemplates{
+		CurrencyFrom: conf.CurrencyFrom,
+		CurrencyTo:   conf.CurrencyTo,
+	}, nil
 }
 
 func (template *SimpleTextTemplates) CurrencyRate(rate float64) string {
