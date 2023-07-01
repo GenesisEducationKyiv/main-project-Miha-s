@@ -11,11 +11,11 @@ type SimpleTextTemplates struct {
 	CurrencyTo   string
 }
 
-func NewSimpleTextTemplates(conf *config.Config) (*SimpleTextTemplates, error) {
+func NewSimpleTextTemplates(conf *config.Config) *SimpleTextTemplates {
 	return &SimpleTextTemplates{
 		CurrencyFrom: conf.CurrencyFrom,
 		CurrencyTo:   conf.CurrencyTo,
-	}, nil
+	}
 }
 
 func (template *SimpleTextTemplates) CurrencyRate(rate models.Rate) string {

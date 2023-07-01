@@ -20,23 +20,20 @@ import (
 
 type Lifecycle struct {
 	services        types.Services
-	handlersFactory handlers.HandlersFactory
+	handlersFactory server.HandlersFactory
 	server          *server.Server
 	config          config.Config
 }
 
 func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	lifecycle.config = *conf
-	logger.Init(conf)
-	err := error(nil)
-	lifecycle.services.Templates, err = templates.NewSimpleTextTemplates(conf)
+	err := logger.Init(conf)
 	if err != nil {
 		return errors.Wrap(err, "Init")
 	}
-	lifecycle.services.EmailSender, err = emailSender.NewGoMailSender(conf)
-	if err != nil {
-		return errors.Wrap(err, "Init")
-	}
+
+	lifecycle.services.Templates = templates.NewSimpleTextTemplates(conf)
+	lifecycle.services.EmailSender = emailSender.NewGoMailSender(conf)
 
 	CoinGeckoRateProvider := rateProviders.NewHttpRateProvider(rateProviders.NewCoinGeckoExecutor(conf))
 	CoinAPIRateProvider := rateProviders.NewHttpRateProvider(rateProviders.NewCoinAPIExecutor(conf))
@@ -48,15 +45,9 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 		return errors.Wrap(err, "Init")
 	}
 
-	lifecycle.handlersFactory, err = handlers.NewHandlersFactoryImpl(conf, &lifecycle.services)
-	if err != nil {
-		return errors.Wrap(err, "Init")
-	}
+	lifecycle.handlersFactory = handlers.NewHandlersFactoryImpl(conf, &lifecycle.services)
 
-	lifecycle.server, err = server.NewServer(conf, lifecycle.handlersFactory)
-	if err != nil {
-		return errors.Wrap(err, "Init")
-	}
+	lifecycle.server = server.NewServer(conf, lifecycle.handlersFactory)
 
 	logger.Log.Infof("The server is listening on port: %v", conf.Port)
 

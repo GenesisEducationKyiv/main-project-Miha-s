@@ -16,17 +16,14 @@ type GoMailSender struct {
 	dialer  gomail.Dialer
 }
 
-func NewGoMailSender(conf *config.Config) (*GoMailSender, error) {
+func NewGoMailSender(conf *config.Config) *GoMailSender {
 	newEmailSender := new(GoMailSender)
-	err := newEmailSender.init(conf)
-	if err != nil {
-		return nil, err
-	}
+	newEmailSender.init(conf)
 
-	return newEmailSender, nil
+	return newEmailSender
 }
 
-func (sender *GoMailSender) init(conf *config.Config) error {
+func (sender *GoMailSender) init(conf *config.Config) {
 	sender.dialer = *gomail.NewDialer(conf.EmailServiceUrl, conf.EmailServicePort,
 		conf.EmailToSendFrom, conf.EmailToSendFromPassword)
 
@@ -35,7 +32,6 @@ func (sender *GoMailSender) init(conf *config.Config) error {
 	sender.dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	sender.subject = conf.EmailSubject
-	return nil
 }
 
 func (sender *GoMailSender) SendEmail(recipient models.Email, body string) error {

@@ -39,15 +39,12 @@ func (api *CoinAPIExecutor) ExtractRate(jsonValue []byte, _ *models.Currency) (m
 	return rate, nil
 }
 
-func (api *CoinAPIExecutor) generateEndpoint(currency *models.Currency) (string, error) {
-	return fmt.Sprintf(api.endpoint, currency.CurrencyFrom, currency.CurrencyTo), nil
+func (api *CoinAPIExecutor) generateEndpoint(currency *models.Currency) string {
+	return fmt.Sprintf(api.endpoint, currency.CurrencyFrom, currency.CurrencyTo)
 }
 
 func (api *CoinAPIExecutor) GenerateHttpRequest(currency *models.Currency) (*http.Request, error) {
-	endpoint, err := api.generateEndpoint(currency)
-	if err != nil {
-		return nil, errors.Wrap(err, "generateCurrencyRequest")
-	}
+	endpoint := api.generateEndpoint(currency)
 	req, err := http.NewRequest(
 		http.MethodGet,
 		endpoint,

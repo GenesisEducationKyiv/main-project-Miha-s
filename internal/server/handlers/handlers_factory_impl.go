@@ -10,10 +10,10 @@ type HandlersFactoryImpl struct {
 	currencyTo   string
 }
 
-func NewHandlersFactoryImpl(conf *config.Config, services Services) (*HandlersFactoryImpl, error) {
+func NewHandlersFactoryImpl(conf *config.Config, services Services) *HandlersFactoryImpl {
 	return &HandlersFactoryImpl{
 		services:     services,
 		currencyFrom: conf.CurrencyFrom,
 		currencyTo:   conf.CurrencyTo,
-	}, nil
+	}
 }

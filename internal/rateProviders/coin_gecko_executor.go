@@ -29,15 +29,12 @@ func NewCoinGeckoExecutor(conf *config.Config) *CoinGeckoExecutor {
 	}
 }
 
-func (api *CoinGeckoExecutor) generateEndpoint(currency *models.Currency) (string, error) {
-	return fmt.Sprintf(api.url, currency.CurrencyFrom, currency.CurrencyTo), nil
+func (api *CoinGeckoExecutor) generateEndpoint(currency *models.Currency) string {
+	return fmt.Sprintf(api.url, currency.CurrencyFrom, currency.CurrencyTo)
 }
 
 func (api *CoinGeckoExecutor) GenerateHttpRequest(currency *models.Currency) (*http.Request, error) {
-	endpoint, err := api.generateEndpoint(currency)
-	if err != nil {
-		return nil, errors.Wrap(err, "GenerateCurrencyRequest")
-	}
+	endpoint := api.generateEndpoint(currency)
 	req, err := http.NewRequest(
 		http.MethodGet,
 		endpoint,

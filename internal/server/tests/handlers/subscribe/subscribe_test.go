@@ -49,10 +49,7 @@ func createSubscribeRequest(body io.Reader) *http.Request {
 func createSubscribeHandler() (http.HandlerFunc, error) {
 	servicesStubs := new(types.Services)
 	servicesStubs.EmailsRepository = &emailsStorageTest.EmailsStorageStub{}
-	factory, err := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
-	if err != nil {
-		return nil, err
-	}
+	factory := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
 	subscribeHandler := factory.CreateSubscribe()
 	return subscribeHandler, nil
 }

@@ -11,6 +11,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+type EmailValidator interface {
+	ValidateEmail(email *models.Email) bool
+}
+
 type JsonEmailsStorage struct {
 	emails          map[models.Email]struct{}
 	storageFilePath string

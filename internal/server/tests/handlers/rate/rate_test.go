@@ -46,10 +46,7 @@ func createRateHandler(rateAccessor handlers.RateProvider) (http.HandlerFunc, er
 	servicesStubs := new(types.Services)
 	servicesStubs.Templates = &templatesTest.TemplatesImplStub{}
 	servicesStubs.RateProvider = rateAccessor
-	factory, err := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
-	if err != nil {
-		return nil, err
-	}
+	factory := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
 	rateHandler := factory.CreateRate()
 	return rateHandler, nil
 }

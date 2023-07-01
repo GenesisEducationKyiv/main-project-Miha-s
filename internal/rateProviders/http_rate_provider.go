@@ -15,6 +15,11 @@ type HttpRateExecutor interface {
 	ExtractRate(resp []byte, currency *models.Currency) (models.Rate, error)
 }
 
+type RateProviderChain interface {
+	GetCurrentRate(currency *models.Currency) (models.Rate, error)
+	SetNext(provider RateProviderChain)
+}
+
 type HttpRateProvider struct {
 	nextProvider RateProviderChain
 	executor     HttpRateExecutor
