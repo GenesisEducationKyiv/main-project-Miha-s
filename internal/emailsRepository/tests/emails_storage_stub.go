@@ -1,7 +1,7 @@
 package emailsStorageTest
 
 import (
-	"btc-test-task/internal/emailsRepository"
+	"btc-test-task/internal/helpers/errors"
 	"btc-test-task/internal/helpers/models"
 )
 
@@ -17,9 +17,9 @@ type EmailsStorageStub struct {
 
 func (storage *EmailsStorageStub) AddEmail(email *models.Email) error {
 	if *email == ExistingEmail {
-		return emailsRepository.ErrEmailAlreadyExists
+		return errors.ErrEmailAlreadyExists
 	} else if *email == BadEmail {
-		return emailsRepository.ErrInvalidEmailAddress
+		return errors.ErrInvalidEmailAddress
 	}
 	return nil
 }
@@ -30,7 +30,7 @@ func (storage *EmailsStorageStub) GetAllEmails() map[models.Email]struct{} {
 
 func (storage *EmailsStorageStub) RemoveEmail(email *models.Email) error {
 	if *email != ExistingEmail {
-		return emailsRepository.ErrEmailDoesNotExists
+		return errors.ErrEmailDoesNotExists
 	}
 	return nil
 }

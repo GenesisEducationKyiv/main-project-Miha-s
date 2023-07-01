@@ -1,4 +1,4 @@
-package emailSender
+package errors
 
 import "errors"
 

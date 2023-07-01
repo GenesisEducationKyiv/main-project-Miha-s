@@ -1,4 +1,4 @@
-package rateProviders
+package handlers
 
 import (
 	"btc-test-task/internal/helpers/models"
@@ -6,5 +6,4 @@ import (
 
 type RateProvider interface {
 	GetCurrentRate(currencyFrom string, currencyTo string) (models.Rate, error)
-	SetNext(provider RateProvider)
 }

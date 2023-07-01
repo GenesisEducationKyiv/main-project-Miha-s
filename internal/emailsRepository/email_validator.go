@@ -1,4 +1,4 @@
-package validators
+package emailsRepository
 
 import "btc-test-task/internal/helpers/models"
 

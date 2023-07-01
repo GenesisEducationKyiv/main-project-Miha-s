@@ -1,4 +1,4 @@
-package emailsRepository
+package errors
 
 import "errors"
 

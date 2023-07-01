@@ -2,6 +2,7 @@ package rateProviders
 
 import (
 	"btc-test-task/internal/helpers/config"
+	errors2 "btc-test-task/internal/helpers/errors"
 	"btc-test-task/internal/helpers/logger"
 	"btc-test-task/internal/helpers/models"
 	"encoding/json"
@@ -14,7 +15,7 @@ import (
 
 type CoinGeckoApi struct {
 	url          string
-	nextProvider RateProvider
+	nextProvider RateProviderChain
 }
 
 type CoinGeckoResponse map[string]map[string]float64
@@ -25,7 +26,7 @@ func NewCoinGeckoApi(conf *config.Config) (*CoinGeckoApi, error) {
 	}, nil
 }
 
-func (api *CoinGeckoApi) SetNext(provider RateProvider) {
+func (api *CoinGeckoApi) SetNext(provider RateProviderChain) {
 	api.nextProvider = provider
 }
 
@@ -35,7 +36,7 @@ func (api *CoinGeckoApi) extractRate(resp *http.Response, currencyFrom string, c
 	var responseData CoinGeckoResponse
 	err := json.NewDecoder(resp.Body).Decode(&responseData)
 	if err != nil {
-		return rate, errors.Wrap(ErrFailedToGetRate, "extractRate")
+		return rate, errors.Wrap(errors2.ErrFailedToGetRate, "extractRate")
 	}
 
 	rate.Value = responseData[strings.ToLower(currencyFrom)][strings.ToLower(currencyTo)]
@@ -73,7 +74,7 @@ func (api *CoinGeckoApi) getRate(currencyFrom string, currencyTo string) (models
 	defer res.Body.Close()
 
 	if err != nil {
-		return currentRate, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate")
+		return currentRate, errors.Wrap(errors2.ErrFailedToGetRate, "GetCurrentRate")
 	}
 
 	currentRate, err = api.extractRate(res, currencyFrom, currencyTo)

@@ -1,4 +1,4 @@
-package emailsRepository
+package handlers
 
 import "btc-test-task/internal/helpers/models"
 

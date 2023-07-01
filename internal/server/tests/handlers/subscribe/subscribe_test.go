@@ -19,11 +19,7 @@ import (
 var conf config.Config
 
 func globalSetup() error {
-	err := conf.LoadFromENV("../../../../../.env.test")
-	if err != nil {
-		return err
-	}
-	err = logger.Init(&conf)
+	err := logger.Init(&conf)
 	if err != nil {
 		return err
 	}
@@ -52,7 +48,7 @@ func createSubscribeRequest(body io.Reader) *http.Request {
 
 func createSubscribeHandler() (http.HandlerFunc, error) {
 	servicesStubs := new(types.Services)
-	servicesStubs.EmailStorage = &emailsStorageTest.EmailsStorageStub{}
+	servicesStubs.EmailsRepository = &emailsStorageTest.EmailsStorageStub{}
 	factory, err := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
 	if err != nil {
 		return nil, err

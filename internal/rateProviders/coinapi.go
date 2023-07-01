@@ -2,6 +2,7 @@ package rateProviders
 
 import (
 	"btc-test-task/internal/helpers/config"
+	errors2 "btc-test-task/internal/helpers/errors"
 	"btc-test-task/internal/helpers/logger"
 	"btc-test-task/internal/helpers/models"
 	"encoding/json"
@@ -16,7 +17,7 @@ import (
 type CoinAPI struct {
 	endpoint     string
 	apiKey       string
-	nextProvider RateProvider
+	nextProvider RateProviderChain
 }
 
 func NewCoinAPI(conf *config.Config) (*CoinAPI, error) {
@@ -26,7 +27,7 @@ func NewCoinAPI(conf *config.Config) (*CoinAPI, error) {
 	}, nil
 }
 
-func (api *CoinAPI) SetNext(provider RateProvider) {
+func (api *CoinAPI) SetNext(provider RateProviderChain) {
 	api.nextProvider = provider
 }
 
@@ -34,16 +35,16 @@ func (api *CoinAPI) extractRate(resp *http.Response) (models.Rate, error) {
 	rate := models.Rate{}
 	jsonValue, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return rate, errors.Wrap(ErrFailedToGetRate, "extractRate")
+		return rate, errors.Wrap(errors2.ErrFailedToGetRate, "extractRate")
 	}
 	var dat map[string]interface{}
 	if err := json.Unmarshal(jsonValue, &dat); err != nil {
-		return rate, errors.Wrap(ErrFailedToGetRate, "extractRate")
+		return rate, errors.Wrap(errors2.ErrFailedToGetRate, "extractRate")
 	}
 	var ok bool
 	rate.Value, ok = dat["rate"].(float64)
 	if !ok {
-		return rate, errors.Wrap(ErrFailedToGetRate, "extractRate")
+		return rate, errors.Wrap(errors2.ErrFailedToGetRate, "extractRate")
 	}
 	return rate, nil
 }
@@ -64,7 +65,7 @@ func (api *CoinAPI) generateCurrencyRequest(currencyFrom string, currencyTo stri
 	)
 
 	if err != nil {
-		return nil, errors.Wrap(ErrFailedToGetRate, "generateCurrencyRequest")
+		return nil, errors.Wrap(errors2.ErrFailedToGetRate, "generateCurrencyRequest")
 	}
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("X-CoinAPI-Key", api.apiKey)
@@ -83,7 +84,7 @@ func (api *CoinAPI) getRate(currencyFrom string, currencyTo string) (models.Rate
 	defer res.Body.Close()
 
 	if err != nil {
-		return currentRate, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate")
+		return currentRate, errors.Wrap(errors2.ErrFailedToGetRate, "GetCurrentRate")
 	}
 
 	currentRate, err = api.extractRate(res)

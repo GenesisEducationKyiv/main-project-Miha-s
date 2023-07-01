@@ -3,6 +3,7 @@ package emailsStorageTest
 import (
 	"btc-test-task/internal/emailsRepository"
 	"btc-test-task/internal/helpers/config"
+	errors2 "btc-test-task/internal/helpers/errors"
 	"btc-test-task/internal/helpers/logger"
 	"btc-test-task/internal/helpers/models"
 	"fmt"
@@ -29,11 +30,9 @@ var (
 )
 
 func globalSetup() error {
-	err := conf.LoadFromENV("../../../.env.test")
-	if err != nil {
-		return err
-	}
-	err = os.MkdirAll(conf.EmailStoragePath, os.ModePerm)
+	conf.EmailStoragePath = "./tests"
+	conf.EmailStorageName = "test_storage.json"
+	err := os.MkdirAll(conf.EmailStoragePath, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -112,7 +111,7 @@ func TestErrorEmailExists(t *testing.T) {
 	err = storage.AddEmail(email1)
 	addEmailTest(err, email1, t)
 	err = storage.AddEmail(email1)
-	if !errors.Is(err, emailsRepository.ErrEmailAlreadyExists) {
+	if !errors.Is(err, errors2.ErrEmailAlreadyExists) {
 		t.Errorf("incorrect error when adding same email %v", err)
 	}
 	tearDown(t)
@@ -134,9 +133,9 @@ func TestErrEmailNotExists(t *testing.T) {
 	storage, err := emailsRepository.NewJsonEmailsStorage(&conf, validator)
 	storageInitializationTest(err, t)
 	err = storage.RemoveEmail(email1)
-	if !errors.Is(err, emailsRepository.ErrEmailDoesNotExists) {
+	if !errors.Is(err, errors2.ErrEmailDoesNotExists) {
 		t.Errorf("removing non existing email: error expected %v, got %v",
-			emailsRepository.ErrEmailDoesNotExists, err)
+			errors2.ErrEmailDoesNotExists, err)
 	}
 	tearDown(t)
 }

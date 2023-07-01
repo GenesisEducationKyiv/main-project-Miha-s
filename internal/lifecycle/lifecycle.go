@@ -50,7 +50,7 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	coinGeckoApi.SetNext(coinApi)
 	lifecycle.services.RateProvider = coinGeckoApi
 
-	lifecycle.services.EmailStorage, err = emailsRepository.NewJsonEmailsStorage(conf, new(validators.RegexEmailValidator))
+	lifecycle.services.EmailsRepository, err = emailsRepository.NewJsonEmailsStorage(conf, new(validators.RegexEmailValidator))
 	if err != nil {
 		return errors.Wrap(err, "Init")
 	}
@@ -76,7 +76,7 @@ func (lifecycle *Lifecycle) Run() error {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 
-	defer lifecycle.services.EmailStorage.Close()
+	defer lifecycle.services.EmailsRepository.Close()
 
 	go func() {
 		done <- lifecycle.server.Run()

@@ -1,4 +1,4 @@
-package emailSender
+package handlers
 
 import "btc-test-task/internal/helpers/models"
 

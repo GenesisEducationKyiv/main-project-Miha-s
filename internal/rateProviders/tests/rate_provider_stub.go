@@ -2,7 +2,7 @@ package rateProvidersTest
 
 import (
 	"btc-test-task/internal/helpers/models"
-	"btc-test-task/internal/rateProviders"
+	"btc-test-task/internal/server/handlers"
 )
 
 type RateProviderStub struct {
@@ -14,6 +14,6 @@ func (provider *RateProviderStub) GetCurrentRate(currencyFrom string, currencyTo
 	return provider.Rate, provider.RateError
 }
 
-func (provider *RateProviderStub) SetNext(nextProvider rateProviders.RateProvider) {
+func (provider *RateProviderStub) SetNext(nextProvider handlers.RateProvider) {
 
 }
