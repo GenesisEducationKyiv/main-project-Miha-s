@@ -5,5 +5,5 @@ import (
 )
 
 type RateProvider interface {
-	GetCurrentRate(currencyFrom string, currencyTo string) (models.Rate, error)
+	GetCurrentRate(currency *models.Currency) (models.Rate, error)
 }

@@ -2,7 +2,7 @@ package emailsRepository
 
 import (
 	"btc-test-task/internal/helpers/config"
-	errors2 "btc-test-task/internal/helpers/errors"
+	errors2 "btc-test-task/internal/helpers/customErrors"
 	"btc-test-task/internal/helpers/logger"
 	"btc-test-task/internal/helpers/models"
 	"encoding/json"

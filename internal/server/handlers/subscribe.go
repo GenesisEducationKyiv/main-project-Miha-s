@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	errors2 "btc-test-task/internal/helpers/errors"
+	errors2 "btc-test-task/internal/helpers/customErrors"
 	"btc-test-task/internal/helpers/logger"
 	"btc-test-task/internal/helpers/models"
 	"net/http"

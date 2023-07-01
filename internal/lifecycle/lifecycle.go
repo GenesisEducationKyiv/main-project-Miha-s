@@ -38,17 +38,10 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 		return errors.Wrap(err, "Init")
 	}
 
-	coinApi, err := rateProviders.NewCoinAPI(conf)
-	if err != nil {
-		return errors.Wrap(err, "Init")
-	}
-	coinGeckoApi, err := rateProviders.NewCoinGeckoApi(conf)
-	if err != nil {
-		return errors.Wrap(err, "Init")
-	}
-
-	coinGeckoApi.SetNext(coinApi)
-	lifecycle.services.RateProvider = coinGeckoApi
+	CoinGeckoRateProvider := rateProviders.NewHttpRateProvider(rateProviders.NewCoinGeckoExecutor(conf))
+	CoinAPIRateProvider := rateProviders.NewHttpRateProvider(rateProviders.NewCoinAPIExecutor(conf))
+	CoinGeckoRateProvider.SetNext(CoinAPIRateProvider)
+	lifecycle.services.RateProvider = CoinGeckoRateProvider
 
 	lifecycle.services.EmailsRepository, err = emailsRepository.NewJsonEmailsStorage(conf, new(validators.RegexEmailValidator))
 	if err != nil {

@@ -2,7 +2,7 @@ package rateTest
 
 import (
 	"btc-test-task/internal/helpers/config"
-	"btc-test-task/internal/helpers/errors"
+	"btc-test-task/internal/helpers/customErrors"
 	"btc-test-task/internal/helpers/logger"
 	"btc-test-task/internal/helpers/models"
 	templatesTest "btc-test-task/internal/helpers/templates/tests"
@@ -75,7 +75,7 @@ func TestGetValidRate(t *testing.T) {
 
 func TestGetInvalidRate(t *testing.T) {
 	rateHandler, err := createRateHandler(&rateAccessorsTest.RateProviderStub{
-		RateError: errors.ErrFailedToGetRate,
+		RateError: customErrors.ErrFailedToGetRate,
 	})
 	if err != nil {
 		t.Fatalf("failed to create rate handler %v", err)
