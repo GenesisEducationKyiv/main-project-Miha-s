@@ -3,6 +3,7 @@ package emailSender
 import (
 	"btc-test-task/internal/helpers/config"
 	"btc-test-task/internal/helpers/logger"
+	"btc-test-task/internal/helpers/models"
 	"crypto/tls"
 
 	"gopkg.in/gomail.v2"
@@ -36,10 +37,10 @@ func (sender *GoMailSender) init(conf *config.Config) error {
 	return nil
 }
 
-func (sender *GoMailSender) SendEmail(recipient, body string) error {
+func (sender *GoMailSender) SendEmail(recipient models.Email, body string) error {
 	message := gomail.NewMessage()
 	message.SetHeader("From", sender.email)
-	message.SetHeader("To", recipient)
+	message.SetHeader("To", recipient.Value)
 	message.SetHeader("Subject", sender.subject)
 	message.SetBody("text/plain", body)
 
@@ -50,7 +51,7 @@ func (sender *GoMailSender) SendEmail(recipient, body string) error {
 	return nil
 }
 
-func (sender *GoMailSender) BroadcastEmails(recipients map[string]struct{}, body string) {
+func (sender *GoMailSender) BroadcastEmails(recipients map[models.Email]struct{}, body string) {
 	for email := range recipients {
 		err := sender.SendEmail(email, body)
 		if err != nil {

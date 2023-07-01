@@ -1,9 +1,10 @@
 package subscribeTest
 
 import (
-	emailsStorageTest "btc-test-task/internal/emailsStorage/tests"
+	emailsStorageTest "btc-test-task/internal/emailsRepository/tests"
 	"btc-test-task/internal/helpers/config"
 	"btc-test-task/internal/helpers/logger"
+	"btc-test-task/internal/helpers/models"
 	"btc-test-task/internal/helpers/types"
 	"btc-test-task/internal/server/handlers"
 	"bytes"
@@ -39,8 +40,8 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func createSubscribeBody(email string) io.Reader {
-	return bytes.NewReader([]byte(fmt.Sprintf("email=%v", email)))
+func createSubscribeBody(email models.Email) io.Reader {
+	return bytes.NewReader([]byte(fmt.Sprintf("email=%v", email.Value)))
 }
 
 func createSubscribeRequest(body io.Reader) *http.Request {

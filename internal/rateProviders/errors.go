@@ -1,4 +1,4 @@
-package rateAccessors
+package rateProviders
 
 import "errors"
 

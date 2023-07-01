@@ -1,25 +1,28 @@
-package emailsStorage
+package emailsRepository
 
 import (
 	"btc-test-task/internal/helpers/config"
 	"btc-test-task/internal/helpers/logger"
+	"btc-test-task/internal/helpers/models"
+	"btc-test-task/internal/helpers/validators"
 	"encoding/json"
-	"net/mail"
 	"os"
 
 	"github.com/pkg/errors"
 )
 
 type JsonEmailsStorage struct {
-	emails          map[string]struct{}
+	emails          map[models.Email]struct{}
 	storageFilePath string
 	storageName     string
 	storageFile     *os.File
+	validator       validators.EmailValidator
 }
 
-func NewJsonEmailsStorage(conf *config.Config) (*JsonEmailsStorage, error) {
+func NewJsonEmailsStorage(conf *config.Config, emailValidator validators.EmailValidator) (*JsonEmailsStorage, error) {
 	newJsonEmailsStorage := new(JsonEmailsStorage)
 	err := newJsonEmailsStorage.init(conf)
+	newJsonEmailsStorage.validator = emailValidator
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +31,7 @@ func NewJsonEmailsStorage(conf *config.Config) (*JsonEmailsStorage, error) {
 
 func (storage *JsonEmailsStorage) init(conf *config.Config) error {
 	storage.storageName = conf.EmailStorageName
-	storage.emails = make(map[string]struct{})
+	storage.emails = make(map[models.Email]struct{})
 	storage.storageFilePath = conf.EmailStoragePath + "/" + storage.storageName
 	return storage.initStorageFile()
 }
@@ -54,8 +57,8 @@ func (storage *JsonEmailsStorage) initStorageFile() error {
 	return nil
 }
 
-func getArrayFromSet(set map[string]struct{}) []string {
-	result := make([]string, 0)
+func getArrayFromSet(set map[models.Email]struct{}) []models.Email {
+	result := make([]models.Email, 0)
 
 	for key := range set {
 		result = append(result, key)
@@ -76,25 +79,33 @@ func (storage *JsonEmailsStorage) Close() {
 	}
 }
 
-func (storage *JsonEmailsStorage) AddEmail(email string) error {
-	if !storage.ValidateEmail(email) {
+func (storage *JsonEmailsStorage) emailExists(email *models.Email) bool {
+	_, ok := storage.emails[*email]
+	return ok
+}
+
+func (storage *JsonEmailsStorage) AddEmail(email *models.Email) error {
+	if !storage.validator.ValidateEmail(email) {
 		return ErrInvalidEmailAddress
 	}
 
-	if _, ok := storage.emails[email]; ok {
+	if storage.emailExists(email) {
 		return ErrEmailAlreadyExists
 	}
-	storage.emails[email] = struct{}{}
+	storage.emails[*email] = struct{}{}
 	return storage.sync()
 }
 
-func (storage *JsonEmailsStorage) GetAllEmails() map[string]struct{} {
+func (storage *JsonEmailsStorage) GetAllEmails() map[models.Email]struct{} {
 	return storage.emails
 }
 
-func (storage *JsonEmailsStorage) ValidateEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
-	return err == nil
+func (storage *JsonEmailsStorage) RemoveEmail(email *models.Email) error {
+	if !storage.emailExists(email) {
+		return ErrEmailDoesNotExists
+	}
+	delete(storage.emails, *email)
+	return storage.sync()
 }
 
 func (storage *JsonEmailsStorage) uploadFromFile() error {
@@ -102,22 +113,21 @@ func (storage *JsonEmailsStorage) uploadFromFile() error {
 	if err != nil {
 		return errors.Wrap(err, "uploadFromFile")
 	}
-	var jsonMap map[string]interface{}
-	err = json.Unmarshal(data, &jsonMap)
+	var jsonArray map[string][]models.Email
+	err = json.Unmarshal(data, &jsonArray)
 	if err != nil {
 		return errors.Wrap(err, "uploadFromFile")
 	}
-	jsonArray := jsonMap["emails"].([]interface{})
 
-	for _, email := range jsonArray {
-		storage.emails[email.(string)] = struct{}{}
+	for _, email := range jsonArray["emails"] {
+		storage.emails[email] = struct{}{}
 	}
 
 	return nil
 }
 
 func (storage *JsonEmailsStorage) sync() error {
-	jsonMap := make(map[string][]string)
+	jsonMap := make(map[string][]models.Email)
 	jsonMap["emails"] = getArrayFromSet(storage.emails)
 
 	jsonData, err := json.Marshal(jsonMap)

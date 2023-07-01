@@ -18,6 +18,7 @@ type Config struct {
 	EmailServiceUrl         string
 	EmailServicePort        int
 	EmailSubject            string
+	CoinGeckoAPIUrl         string
 	CoinAPIUrl              string
 	CoinAPIKey              string
 	CurrencyFrom            string
@@ -38,6 +39,7 @@ func (conf *Config) LoadFromENV(envFilePath string) error {
 	}
 	conf.Port = uint(port)
 
+	conf.CoinGeckoAPIUrl = os.Getenv("COINGECKO_URL")
 	conf.CoinAPIUrl = os.Getenv("COINAPI_URL")
 	conf.CoinAPIKey = os.Getenv("COINAPI_KEY")
 	conf.CurrencyFrom = os.Getenv("CURRENCY_FROM")

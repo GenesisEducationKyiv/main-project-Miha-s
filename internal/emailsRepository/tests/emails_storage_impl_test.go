@@ -1,9 +1,10 @@
 package emailsStorageTest
 
 import (
-	"btc-test-task/internal/emailsStorage"
+	"btc-test-task/internal/emailsRepository"
 	"btc-test-task/internal/helpers/config"
 	"btc-test-task/internal/helpers/logger"
+	"btc-test-task/internal/helpers/models"
 	"fmt"
 	"os"
 	"testing"
@@ -11,12 +12,20 @@ import (
 	"github.com/pkg/errors"
 )
 
+type EmailValidatorStub struct {
+}
+
+func (validator *EmailValidatorStub) ValidateEmail(email *models.Email) bool {
+	return true
+}
+
+var validator = &EmailValidatorStub{}
 var conf config.Config
 var (
-	email1   string
-	email2   string
-	email3   string
-	badEmail string
+	email1   = &models.Email{}
+	email2   = &models.Email{}
+	email3   = &models.Email{}
+	badEmail = &models.Email{}
 )
 
 func globalSetup() error {
@@ -32,10 +41,10 @@ func globalSetup() error {
 	if err != nil {
 		return err
 	}
-	email1 = "email1@gmail.com"
-	email2 = "email2@genesis.com"
-	email3 = "email3@ukr.net"
-	badEmail = "veryverybademail@"
+	email1.Value = "email1@gmail.com"
+	email2.Value = "email2@genesis.com"
+	email3.Value = "email3@ukr.net"
+	badEmail.Value = "veryverybademail@"
 	return nil
 }
 
@@ -62,26 +71,26 @@ func storageInitializationTest(err error, t *testing.T) {
 	}
 }
 
-func addEmailTest(err error, email string, t *testing.T) {
+func addEmailTest(err error, email *models.Email, t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to add email %v, because of error %v", email, err)
 	}
 }
 
-func missingEmailTest(exists bool, email string, t *testing.T) {
+func missingEmailTest(exists bool, email *models.Email, t *testing.T) {
 	if !exists {
 		t.Fatalf("missing email %v", email)
 	}
 }
 
 func TestCreateEmailFile(t *testing.T) {
-	_, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	_, err := emailsRepository.NewJsonEmailsStorage(&conf, validator)
 	storageInitializationTest(err, t)
 	tearDown(t)
 }
 
 func TestAddEmail(t *testing.T) {
-	storage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	storage, err := emailsRepository.NewJsonEmailsStorage(&conf, validator)
 	storageInitializationTest(err, t)
 	err = storage.AddEmail(email1)
 	addEmailTest(err, email1, t)
@@ -89,42 +98,51 @@ func TestAddEmail(t *testing.T) {
 	addEmailTest(err, email2, t)
 
 	allEmails := storage.GetAllEmails()
-	_, ok := allEmails[email1]
+	_, ok := allEmails[*email1]
 	missingEmailTest(ok, email1, t)
 
-	_, ok = allEmails[email2]
+	_, ok = allEmails[*email2]
 	missingEmailTest(ok, email2, t)
 	tearDown(t)
 }
 
 func TestErrorEmailExists(t *testing.T) {
-	storage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	storage, err := emailsRepository.NewJsonEmailsStorage(&conf, validator)
 	storageInitializationTest(err, t)
 	err = storage.AddEmail(email1)
 	addEmailTest(err, email1, t)
 	err = storage.AddEmail(email1)
-	if !errors.Is(err, emailsStorage.ErrEmailAlreadyExists) {
+	if !errors.Is(err, emailsRepository.ErrEmailAlreadyExists) {
 		t.Errorf("incorrect error when adding same email %v", err)
 	}
 	tearDown(t)
 }
 
-func TestValidEmail(t *testing.T) {
-	storage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+func TestRemoveEmail(t *testing.T) {
+	storage, err := emailsRepository.NewJsonEmailsStorage(&conf, validator)
 	storageInitializationTest(err, t)
-	ok := storage.ValidateEmail(email3)
-	if !ok {
-		t.Errorf("failed to vaildate valid email %v", email1)
+	err = storage.AddEmail(email1)
+	addEmailTest(err, email1, t)
+	err = storage.RemoveEmail(email1)
+	if err != nil {
+		t.Errorf("error when removing existing email %v", err)
 	}
-	ok = storage.ValidateEmail(badEmail)
-	if ok {
-		t.Errorf("failed to validate invalid email %v", badEmail)
+	tearDown(t)
+}
+
+func TestErrEmailNotExists(t *testing.T) {
+	storage, err := emailsRepository.NewJsonEmailsStorage(&conf, validator)
+	storageInitializationTest(err, t)
+	err = storage.RemoveEmail(email1)
+	if !errors.Is(err, emailsRepository.ErrEmailDoesNotExists) {
+		t.Errorf("removing non existing email: error expected %v, got %v",
+			emailsRepository.ErrEmailDoesNotExists, err)
 	}
 	tearDown(t)
 }
 
 func TestLoadFromPersistence(t *testing.T) {
-	storage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	storage, err := emailsRepository.NewJsonEmailsStorage(&conf, validator)
 	storageInitializationTest(err, t)
 	err = storage.AddEmail(email1)
 	addEmailTest(err, email1, t)
@@ -132,13 +150,13 @@ func TestLoadFromPersistence(t *testing.T) {
 	addEmailTest(err, email2, t)
 	storage.Close()
 
-	newStorage, err := emailsStorage.NewJsonEmailsStorage(&conf)
+	newStorage, err := emailsRepository.NewJsonEmailsStorage(&conf, validator)
 	storageInitializationTest(err, t)
 	allEmails := newStorage.GetAllEmails()
-	_, ok := allEmails[email1]
+	_, ok := allEmails[*email1]
 	missingEmailTest(ok, email1, t)
 
-	_, ok = allEmails[email2]
+	_, ok = allEmails[*email2]
 	missingEmailTest(ok, email2, t)
 	tearDown(t)
 }

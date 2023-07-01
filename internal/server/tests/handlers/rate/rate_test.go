@@ -3,10 +3,11 @@ package rateTest
 import (
 	"btc-test-task/internal/helpers/config"
 	"btc-test-task/internal/helpers/logger"
+	"btc-test-task/internal/helpers/models"
 	templatesTest "btc-test-task/internal/helpers/templates/tests"
 	"btc-test-task/internal/helpers/types"
-	"btc-test-task/internal/rateAccessors"
-	rateAccessorsTest "btc-test-task/internal/rateAccessors/tests"
+	"btc-test-task/internal/rateProviders"
+	rateAccessorsTest "btc-test-task/internal/rateProviders/tests"
 	"btc-test-task/internal/server/handlers"
 	"bytes"
 	"fmt"
@@ -45,10 +46,10 @@ func createRateRequest() *http.Request {
 	return request
 }
 
-func createRateHandler(rateAccessor rateAccessors.RateAccessor) (http.HandlerFunc, error) {
+func createRateHandler(rateAccessor rateProviders.RateProvider) (http.HandlerFunc, error) {
 	servicesStubs := new(types.Services)
 	servicesStubs.Templates = &templatesTest.TemplatesImplStub{}
-	servicesStubs.RateAccessor = rateAccessor
+	servicesStubs.RateProvider = rateAccessor
 	factory, err := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
 	if err != nil {
 		return nil, err
@@ -58,8 +59,8 @@ func createRateHandler(rateAccessor rateAccessors.RateAccessor) (http.HandlerFun
 }
 
 func TestGetValidRate(t *testing.T) {
-	rateValue := 3849.4
-	rateHandler, err := createRateHandler(&rateAccessorsTest.RateAccessorStub{
+	rateValue := models.Rate{Value: 3849.4}
+	rateHandler, err := createRateHandler(&rateAccessorsTest.RateProviderStub{
 		Rate: rateValue,
 	})
 	if err != nil {
@@ -77,8 +78,8 @@ func TestGetValidRate(t *testing.T) {
 }
 
 func TestGetInvalidRate(t *testing.T) {
-	rateHandler, err := createRateHandler(&rateAccessorsTest.RateAccessorStub{
-		RateError: rateAccessors.ErrFailedToGetRate,
+	rateHandler, err := createRateHandler(&rateAccessorsTest.RateProviderStub{
+		RateError: rateProviders.ErrFailedToGetRate,
 	})
 	if err != nil {
 		t.Fatalf("failed to create rate handler %v", err)

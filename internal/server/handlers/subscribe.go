@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"btc-test-task/internal/emailsStorage"
+	"btc-test-task/internal/emailsRepository"
 	"btc-test-task/internal/helpers/logger"
+	"btc-test-task/internal/helpers/models"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -10,15 +11,16 @@ import (
 
 func (factory *HandlersFactoryImpl) CreateSubscribe() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		email := r.FormValue("email")
-		valid := factory.services.EmailStorage.ValidateEmail(email)
-		if !valid {
+		emailStr := r.FormValue("email")
+		email := models.Email{Value: emailStr}
+
+		err := factory.services.EmailStorage.AddEmail(&email)
+
+		if errors.Is(err, emailsRepository.ErrInvalidEmailAddress) {
 			logger.Log.Info("Incorrect email")
 			w.WriteHeader(http.StatusBadRequest)
 			return
-		}
-		err := factory.services.EmailStorage.AddEmail(email)
-		if errors.Is(err, emailsStorage.ErrEmailAlreadyExists) {
+		} else if errors.Is(err, emailsRepository.ErrEmailAlreadyExists) {
 			logger.Log.Info(err)
 			w.WriteHeader(http.StatusConflict)
 			return

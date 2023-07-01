@@ -1,5 +1,9 @@
 package templates
 
+import (
+	"btc-test-task/internal/helpers/models"
+)
+
 type Templates interface {
-	CurrencyRate(float64) string
+	CurrencyRate(rate models.Rate) string
 }

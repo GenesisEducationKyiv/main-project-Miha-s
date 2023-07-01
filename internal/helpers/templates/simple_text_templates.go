@@ -2,6 +2,7 @@ package templates
 
 import (
 	"btc-test-task/internal/helpers/config"
+	"btc-test-task/internal/helpers/models"
 	"fmt"
 )
 
@@ -17,6 +18,6 @@ func NewSimpleTextTemplates(conf *config.Config) (*SimpleTextTemplates, error) {
 	}, nil
 }
 
-func (template *SimpleTextTemplates) CurrencyRate(rate float64) string {
-	return fmt.Sprintf("Current exchage rate from %v to %v is %.2f", template.CurrencyFrom, template.CurrencyTo, rate)
+func (template *SimpleTextTemplates) CurrencyRate(rate models.Rate) string {
+	return fmt.Sprintf("Current exchage rate from %v to %v is %.2f", template.CurrencyFrom, template.CurrencyTo, rate.Value)
 }

@@ -2,12 +2,13 @@ package lifecycle
 
 import (
 	"btc-test-task/internal/emailSender"
-	"btc-test-task/internal/emailsStorage"
+	"btc-test-task/internal/emailsRepository"
 	"btc-test-task/internal/helpers/config"
 	"btc-test-task/internal/helpers/logger"
 	"btc-test-task/internal/helpers/templates"
 	"btc-test-task/internal/helpers/types"
-	"btc-test-task/internal/rateAccessors"
+	"btc-test-task/internal/helpers/validators"
+	"btc-test-task/internal/rateProviders"
 	"btc-test-task/internal/server"
 	"btc-test-task/internal/server/handlers"
 	"os"
@@ -37,12 +38,19 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 		return errors.Wrap(err, "Init")
 	}
 
-	lifecycle.services.RateAccessor, err = rateAccessors.NewCoinAPI(conf)
+	coinApi, err := rateProviders.NewCoinAPI(conf)
+	if err != nil {
+		return errors.Wrap(err, "Init")
+	}
+	coinGeckoApi, err := rateProviders.NewCoinGeckoApi(conf)
 	if err != nil {
 		return errors.Wrap(err, "Init")
 	}
 
-	lifecycle.services.EmailStorage, err = emailsStorage.NewJsonEmailsStorage(conf)
+	coinGeckoApi.SetNext(coinApi)
+	lifecycle.services.RateProvider = coinGeckoApi
+
+	lifecycle.services.EmailStorage, err = emailsRepository.NewJsonEmailsStorage(conf, new(validators.RegexEmailValidator))
 	if err != nil {
 		return errors.Wrap(err, "Init")
 	}
