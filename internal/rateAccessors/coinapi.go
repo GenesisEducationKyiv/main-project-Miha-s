@@ -26,12 +26,16 @@ func NewCoinAPI(conf *config.Config) (*CoinAPI, error) {
 }
 
 func (api *CoinAPI) init(conf *config.Config) error {
-	api.endpoint = conf.CoinAPIUrl + conf.CurrencyFrom + "/" + conf.CurrencyTo
+	api.endpoint = conf.CoinAPIUrl
 	api.apiKey = conf.CoinAPIKey
 	return nil
 }
 
-func extractRate(jsonValue []byte) (float64, error) {
+func extractRate(resp *http.Response) (float64, error) {
+	jsonValue, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, errors.Wrap(ErrFailedToGetRate, "extractRate")
+	}
 	var dat map[string]interface{}
 	if err := json.Unmarshal(jsonValue, &dat); err != nil {
 		return 0, errors.Wrap(ErrFailedToGetRate, "extractRate")
@@ -43,30 +47,45 @@ func extractRate(jsonValue []byte) (float64, error) {
 	return rate, nil
 }
 
-func (api *CoinAPI) GetCurrentRate() (float64, error) {
-	value := 0.0
+func (api *CoinAPI) generateEndpoint(currencyFrom string, currencyTo string) (string, error) {
+	return api.endpoint + currencyFrom + "/" + currencyTo, nil
+}
+
+func (api *CoinAPI) generateCurrencyRequest(currencyFrom string, currencyTo string) (*http.Request, error) {
+	endpoint, err := api.generateEndpoint(currencyFrom, currencyTo)
+	if err != nil {
+		return nil, errors.Wrap(err, "generateCurrencyRequest")
+	}
 	req, err := http.NewRequest(
 		http.MethodGet,
-		api.endpoint,
+		endpoint,
 		nil,
 	)
 
 	if err != nil {
-		return value, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate")
+		return nil, errors.Wrap(ErrFailedToGetRate, "generateCurrencyRequest")
 	}
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("X-CoinAPI-Key", api.apiKey)
+
+	return req, nil
+}
+
+func (api *CoinAPI) GetCurrentRate(currencyFrom string, currencyTo string) (float64, error) {
+	value := 0.0
+	req, err := api.generateCurrencyRequest(currencyFrom, currencyTo)
+	if err != nil {
+		logger.Log.Error(err)
+		return value, errors.Wrap(err, "GetCurrentRate")
+	}
 	res, err := http.DefaultClient.Do(req)
 	defer res.Body.Close()
 
 	if err != nil {
 		return value, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate")
 	}
-	responseBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return value, errors.Wrap(ErrFailedToGetRate, "GetCurrentRate")
-	}
-	value, err = extractRate(responseBytes)
+
+	value, err = extractRate(res)
 	if err != nil {
 		return value, errors.Wrap(err, "GetCurrentRate")
 	}

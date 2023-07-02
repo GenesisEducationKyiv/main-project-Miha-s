@@ -6,7 +6,9 @@ import (
 )
 
 type HandlersFactoryImpl struct {
-	services *types.Services
+	services     *types.Services
+	currencyFrom string
+	currencyTo   string
 }
 
 func NewHandlersFactoryImpl(conf *config.Config, services *types.Services) (*HandlersFactoryImpl, error) {
@@ -20,5 +22,7 @@ func NewHandlersFactoryImpl(conf *config.Config, services *types.Services) (*Han
 
 func (factory *HandlersFactoryImpl) init(conf *config.Config, services *types.Services) error {
 	factory.services = services
+	factory.currencyFrom = conf.CurrencyFrom
+	factory.currencyTo = conf.CurrencyTo
 	return nil
 }

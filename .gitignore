@@ -24,4 +24,5 @@ go.work
 emails_storage.json
 
 # IDE files
-.idea
+.idea/
+.vscode/

@@ -11,7 +11,7 @@ import (
 func (factory *HandlersFactoryImpl) CreateSendEmails() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		emails := factory.services.EmailStorage.GetAllEmails()
-		rate, err := factory.services.RateAccessor.GetCurrentRate()
+		rate, err := factory.services.RateAccessor.GetCurrentRate(factory.currencyFrom, factory.currencyTo)
 		if errors.Is(err, rateAccessors.ErrFailedToGetRate) {
 			logger.Log.Warn(err)
 			w.WriteHeader(http.StatusFailedDependency)
