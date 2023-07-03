@@ -1,7 +1,7 @@
 package rateProvidersTest
 
 import (
-	"btc-test-task/internal/helpers/models"
+	models "btc-test-task/internal/models"
 )
 
 type RateProviderStub struct {

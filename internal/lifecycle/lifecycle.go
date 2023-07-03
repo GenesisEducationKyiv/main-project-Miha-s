@@ -1,14 +1,13 @@
 package lifecycle
 
 import (
-	"btc-test-task/internal/emailSender"
-	"btc-test-task/internal/emailsRepository"
-	"btc-test-task/internal/helpers/config"
-	"btc-test-task/internal/helpers/logger"
-	"btc-test-task/internal/helpers/templates"
-	"btc-test-task/internal/helpers/types"
-	"btc-test-task/internal/helpers/validators"
-	"btc-test-task/internal/rateProviders"
+	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/currencyrate"
+	"btc-test-task/internal/email"
+	"btc-test-task/internal/email/templates"
+	"btc-test-task/internal/repository"
+	"btc-test-task/internal/repository/validators"
 	"btc-test-task/internal/server"
 	"btc-test-task/internal/server/handlers"
 	"os"
@@ -19,7 +18,7 @@ import (
 )
 
 type Lifecycle struct {
-	services        types.Services
+	services        Services
 	handlersFactory server.HandlersFactory
 	server          *server.Server
 	config          config.Config
@@ -33,14 +32,16 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	}
 
 	lifecycle.services.Templates = templates.NewSimpleTextTemplates(conf)
-	lifecycle.services.EmailSender = emailSender.NewGoMailSender(conf)
+	lifecycle.services.EmailSender = email.NewGoMailSender(conf)
 
-	CoinGeckoRateProvider := rateProviders.NewHttpRateProvider(rateProviders.NewCoinGeckoExecutor(conf))
-	CoinAPIRateProvider := rateProviders.NewHttpRateProvider(rateProviders.NewCoinAPIExecutor(conf))
+	CoinGeckoRateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewCoinGeckoExecutor(conf))
+	CoinAPIRateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewCoinAPIExecutor(conf))
+	BinanceAPIrateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewBinanceAPIExecutor(conf))
+	CoinAPIRateProvider.SetNext(BinanceAPIrateProvider)
 	CoinGeckoRateProvider.SetNext(CoinAPIRateProvider)
 	lifecycle.services.RateProvider = CoinGeckoRateProvider
 
-	lifecycle.services.EmailsRepository, err = emailsRepository.NewJsonEmailsStorage(conf, new(validators.RegexEmailValidator))
+	lifecycle.services.EmailsRepository, err = repository.NewJsonEmailsStorage(conf, new(validators.RegexEmailValidator))
 	if err != nil {
 		return errors.Wrap(err, "Init")
 	}

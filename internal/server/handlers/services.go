@@ -1,6 +1,8 @@
 package handlers
 
-import "btc-test-task/internal/helpers/models"
+import (
+	models "btc-test-task/internal/models"
+)
 
 type EmailSender interface {
 	BroadcastEmails(recipients map[models.Email]struct{}, body string)

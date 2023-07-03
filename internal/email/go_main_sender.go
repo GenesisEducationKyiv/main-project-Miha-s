@@ -1,10 +1,9 @@
-package emailSender
+package email
 
 import (
-	"btc-test-task/internal/helpers/config"
-	"btc-test-task/internal/helpers/customErrors"
-	"btc-test-task/internal/helpers/logger"
-	"btc-test-task/internal/helpers/models"
+	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/models"
 	"crypto/tls"
 
 	"gopkg.in/gomail.v2"
@@ -43,7 +42,7 @@ func (sender *GoMailSender) SendEmail(recipient models.Email, body string) error
 
 	if err := sender.dialer.DialAndSend(message); err != nil {
 		logger.Log.Error(err)
-		return customErrors.ErrFailedToSendEmail
+		return ErrFailedToSendEmail
 	}
 	return nil
 }

@@ -1,4 +1,4 @@
-package types
+package lifecycle
 
 import (
 	"btc-test-task/internal/server/handlers"

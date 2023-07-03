@@ -1,7 +1,7 @@
 package e2e
 
 import (
-	"btc-test-task/internal/helpers/config"
+	"btc-test-task/internal/configuration/config"
 	"bytes"
 	"fmt"
 	"net/http"

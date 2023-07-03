@@ -1,10 +1,9 @@
-package emailsRepository
+package repository
 
 import (
-	"btc-test-task/internal/helpers/config"
-	errors2 "btc-test-task/internal/helpers/customErrors"
-	"btc-test-task/internal/helpers/logger"
-	"btc-test-task/internal/helpers/models"
+	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/models"
 	"encoding/json"
 	"os"
 
@@ -90,11 +89,11 @@ func (storage *JsonEmailsStorage) emailExists(email *models.Email) bool {
 
 func (storage *JsonEmailsStorage) AddEmail(email *models.Email) error {
 	if !storage.validator.ValidateEmail(email) {
-		return errors2.ErrInvalidEmailAddress
+		return ErrInvalidEmailAddress
 	}
 
 	if storage.emailExists(email) {
-		return errors2.ErrEmailAlreadyExists
+		return ErrEmailAlreadyExists
 	}
 	storage.emails[*email] = struct{}{}
 	return storage.sync()
@@ -106,7 +105,7 @@ func (storage *JsonEmailsStorage) GetAllEmails() map[models.Email]struct{} {
 
 func (storage *JsonEmailsStorage) RemoveEmail(email *models.Email) error {
 	if !storage.emailExists(email) {
-		return errors2.ErrEmailDoesNotExists
+		return ErrEmailDoesNotExists
 	}
 	delete(storage.emails, *email)
 	return storage.sync()
@@ -137,22 +136,22 @@ func (storage *JsonEmailsStorage) sync() error {
 	jsonData, err := json.Marshal(jsonMap)
 	if err != nil {
 		logger.Log.Error(err)
-		return errors2.ErrFailedSyncStorage
+		return ErrFailedSyncStorage
 	}
 	err = storage.storageFile.Truncate(0)
 	if err != nil {
 		logger.Log.Error(err)
-		return errors2.ErrFailedSyncStorage
+		return ErrFailedSyncStorage
 	}
 	_, err = storage.storageFile.Seek(0, 0)
 	if err != nil {
 		logger.Log.Error(err)
-		return errors2.ErrFailedSyncStorage
+		return ErrFailedSyncStorage
 	}
 	_, err = storage.storageFile.Write(jsonData)
 	if err != nil {
 		logger.Log.Error("Was not able to save to storage")
-		return errors2.ErrFailedSyncStorage
+		return ErrFailedSyncStorage
 	}
 	return nil
 }

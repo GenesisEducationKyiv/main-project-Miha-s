@@ -1,4 +1,4 @@
-package customErrors
+package repository
 
 import "errors"
 

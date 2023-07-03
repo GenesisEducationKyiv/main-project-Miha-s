@@ -21,6 +21,7 @@ type Config struct {
 	CoinGeckoAPIUrl         string
 	CoinAPIUrl              string
 	CoinAPIKey              string
+	BinanceAPIUrl           string
 	CurrencyFrom            string
 	CurrencyTo              string
 	LogLevel                string
@@ -42,6 +43,7 @@ func (conf *Config) LoadFromENV(envFilePath string) error {
 	conf.CoinGeckoAPIUrl = os.Getenv("COINGECKO_URL")
 	conf.CoinAPIUrl = os.Getenv("COINAPI_URL")
 	conf.CoinAPIKey = os.Getenv("COINAPI_KEY")
+	conf.BinanceAPIUrl = os.Getenv("BINANCEAPI_URL")
 	conf.CurrencyFrom = os.Getenv("CURRENCY_FROM")
 	conf.CurrencyTo = os.Getenv("CURRENCY_TO")
 

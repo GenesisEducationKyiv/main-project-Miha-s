@@ -1,26 +1,26 @@
 package handlers
 
 import (
-	errors2 "btc-test-task/internal/helpers/customErrors"
-	"btc-test-task/internal/helpers/logger"
-	"btc-test-task/internal/helpers/models"
+	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/models"
+	"btc-test-task/internal/repository"
 	"net/http"
 
 	"github.com/pkg/errors"
 )
 
 func (factory *HandlersFactoryImpl) CreateSubscribe() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		emailStr := r.FormValue("email")
 		email := models.Email{Value: emailStr}
 
 		err := factory.services.GetEmailsRepositoryService().AddEmail(&email)
 
-		if errors.Is(err, errors2.ErrInvalidEmailAddress) {
+		if errors.Is(err, repository.ErrInvalidEmailAddress) {
 			logger.Log.Info(err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
-		} else if errors.Is(err, errors2.ErrEmailAlreadyExists) {
+		} else if errors.Is(err, repository.ErrEmailAlreadyExists) {
 			logger.Log.Info(err)
 			w.WriteHeader(http.StatusConflict)
 			return
@@ -30,5 +30,5 @@ func (factory *HandlersFactoryImpl) CreateSubscribe() http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-	})
+	}
 }
