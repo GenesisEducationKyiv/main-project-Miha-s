@@ -58,10 +58,10 @@ func (api *HttpRateProvider) GetCurrentRate(currency *models.Currency) (models.R
 func (api *HttpRateProvider) getRate(currency *models.Currency) (models.Rate, error) {
 	currentRate := models.Rate{}
 	res, err := api.executeRateRequest(currency)
-	defer res.Body.Close()
 	if err != nil {
 		return currentRate, err
 	}
+	defer res.Body.Close()
 
 	currentRate, err = api.parseRateResponse(res, currency)
 	if err != nil {
