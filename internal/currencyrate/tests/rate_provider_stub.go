@@ -1,14 +1,14 @@
 package rateProvidersTest
 
 import (
-	models2 "btc-test-task/internal/common/models"
+	"btc-test-task/internal/common/models"
 )
 
 type RateProviderStub struct {
 	RateError error
-	Rate      models2.Rate
+	Rate      models.Rate
 }
 
-func (provider *RateProviderStub) GetCurrentRate(currency *models2.Currency) (models2.Rate, error) {
+func (provider *RateProviderStub) GetCurrentRate(currency *models.Currency) (models.Rate, error) {
 	return provider.Rate, provider.RateError
 }

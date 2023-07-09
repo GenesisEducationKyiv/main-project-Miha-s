@@ -2,7 +2,7 @@ package currencyrate
 
 import (
 	"btc-test-task/internal/common/configuration/config"
-	models2 "btc-test-task/internal/common/models"
+	"btc-test-task/internal/common/models"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -28,7 +28,7 @@ func NewCoinGeckoExecutor(conf *config.Config) *CoinGeckoExecutor {
 	}
 }
 
-func (api *CoinGeckoExecutor) GenerateHttpRequest(currency *models2.Currency) (*http.Request, error) {
+func (api *CoinGeckoExecutor) GenerateHttpRequest(currency *models.Currency) (*http.Request, error) {
 	endpoint := api.generateEndpoint(currency)
 	req, err := http.NewRequest(
 		http.MethodGet,
@@ -40,8 +40,8 @@ func (api *CoinGeckoExecutor) GenerateHttpRequest(currency *models2.Currency) (*
 	return req, err
 }
 
-func (api *CoinGeckoExecutor) ExtractRate(resp []byte, currency *models2.Currency) (models2.Rate, error) {
-	rate := models2.Rate{}
+func (api *CoinGeckoExecutor) ExtractRate(resp []byte, currency *models.Currency) (models.Rate, error) {
+	rate := models.Rate{}
 
 	var responseData CoinGeckoResponse
 	err := json.NewDecoder(bytes.NewReader(resp)).Decode(&responseData)
@@ -56,6 +56,6 @@ func (api *CoinGeckoExecutor) ExtractRate(resp []byte, currency *models2.Currenc
 	return rate, nil
 }
 
-func (api *CoinGeckoExecutor) generateEndpoint(currency *models2.Currency) string {
+func (api *CoinGeckoExecutor) generateEndpoint(currency *models.Currency) string {
 	return fmt.Sprintf(api.url, currency.From, currency.To)
 }
