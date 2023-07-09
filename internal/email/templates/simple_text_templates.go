@@ -1,8 +1,8 @@
 package templates
 
 import (
-	"btc-test-task/internal/configuration/config"
-	"btc-test-task/internal/models"
+	"btc-test-task/internal/common/configuration/config"
+	"btc-test-task/internal/common/models"
 	"fmt"
 )
 

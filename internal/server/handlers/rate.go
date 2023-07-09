@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/common/configuration/logger"
+	"btc-test-task/internal/common/models"
 	"btc-test-task/internal/currencyrate"
-	"btc-test-task/internal/models"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -12,7 +12,7 @@ import (
 func (factory *HandlersFactoryImpl) CreateRate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		rate, err := factory.services.GetRateProviderService().GetCurrentRate(
-			&models.Currency{CurrencyFrom: factory.currencyFrom, CurrencyTo: factory.currencyTo})
+			&models.Currency{From: factory.currencyFrom, To: factory.currencyTo})
 		if errors.Is(err, currencyrate.ErrFailedToGetRate) {
 			logger.Log.Warn(err)
 			w.WriteHeader(http.StatusNotFound)

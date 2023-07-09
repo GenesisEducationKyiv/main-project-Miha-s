@@ -1,7 +1,7 @@
 package emailsStorageTest
 
 import (
-	"btc-test-task/internal/models"
+	"btc-test-task/internal/common/models"
 	"btc-test-task/internal/repository"
 )
 

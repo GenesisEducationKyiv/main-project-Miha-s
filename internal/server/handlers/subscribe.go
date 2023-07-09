@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"btc-test-task/internal/configuration/logger"
-	"btc-test-task/internal/models"
+	"btc-test-task/internal/common/configuration/logger"
+	"btc-test-task/internal/common/models"
 	"btc-test-task/internal/repository"
 	"net/http"
 

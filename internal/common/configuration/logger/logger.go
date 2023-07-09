@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/common/configuration/config"
 	"bytes"
 	"fmt"
 	"os"

@@ -1,10 +1,10 @@
 package subscribeTest
 
 import (
-	"btc-test-task/internal/configuration/config"
-	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/common/configuration/config"
+	"btc-test-task/internal/common/configuration/logger"
+	"btc-test-task/internal/common/models"
 	"btc-test-task/internal/lifecycle"
-	"btc-test-task/internal/models"
 	emailsStorageTest "btc-test-task/internal/repository/tests"
 	"btc-test-task/internal/server/handlers"
 	"bytes"

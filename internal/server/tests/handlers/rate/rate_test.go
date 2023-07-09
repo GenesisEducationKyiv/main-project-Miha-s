@@ -1,13 +1,13 @@
 package rateTest
 
 import (
-	"btc-test-task/internal/configuration/config"
-	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/common/configuration/config"
+	"btc-test-task/internal/common/configuration/logger"
+	"btc-test-task/internal/common/models"
 	"btc-test-task/internal/currencyrate"
 	rateAccessorsTest "btc-test-task/internal/currencyrate/tests"
 	templatesTest "btc-test-task/internal/email/templates/tests"
 	"btc-test-task/internal/lifecycle"
-	"btc-test-task/internal/models"
 	"btc-test-task/internal/server/handlers"
 	"bytes"
 	"fmt"

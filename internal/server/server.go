@@ -1,7 +1,7 @@
 package server
 
 import (
-	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/common/configuration/config"
 	"fmt"
 
 	"net/http"

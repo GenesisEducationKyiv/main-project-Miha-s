@@ -1,8 +1,8 @@
 package lifecycle
 
 import (
-	"btc-test-task/internal/configuration/config"
-	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/common/configuration/config"
+	"btc-test-task/internal/common/configuration/logger"
 	"btc-test-task/internal/currencyrate"
 	"btc-test-task/internal/email"
 	"btc-test-task/internal/email/templates"
