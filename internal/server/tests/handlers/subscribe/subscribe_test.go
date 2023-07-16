@@ -1,10 +1,11 @@
 package subscribeTest
 
 import (
-	emailsStorageTest "btc-test-task/internal/emailsStorage/tests"
-	"btc-test-task/internal/helpers/config"
-	"btc-test-task/internal/helpers/logger"
-	"btc-test-task/internal/helpers/types"
+	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/lifecycle"
+	"btc-test-task/internal/models"
+	emailsStorageTest "btc-test-task/internal/repository/tests"
 	"btc-test-task/internal/server/handlers"
 	"bytes"
 	"fmt"
@@ -18,11 +19,7 @@ import (
 var conf config.Config
 
 func globalSetup() error {
-	err := conf.LoadFromENV("../../../../../.env.test")
-	if err != nil {
-		return err
-	}
-	err = logger.Init(&conf)
+	err := logger.Init(&conf)
 	if err != nil {
 		return err
 	}
@@ -39,8 +36,8 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func createSubscribeBody(email string) io.Reader {
-	return bytes.NewReader([]byte(fmt.Sprintf("email=%v", email)))
+func createSubscribeBody(email models.Email) io.Reader {
+	return bytes.NewReader([]byte(fmt.Sprintf("email=%v", email.Value)))
 }
 
 func createSubscribeRequest(body io.Reader) *http.Request {
@@ -50,12 +47,9 @@ func createSubscribeRequest(body io.Reader) *http.Request {
 }
 
 func createSubscribeHandler() (http.HandlerFunc, error) {
-	servicesStubs := new(types.Services)
-	servicesStubs.EmailStorage = &emailsStorageTest.EmailsStorageStub{}
-	factory, err := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
-	if err != nil {
-		return nil, err
-	}
+	servicesStubs := new(lifecycle.Services)
+	servicesStubs.EmailsRepository = &emailsStorageTest.EmailsStorageStub{}
+	factory := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
 	subscribeHandler := factory.CreateSubscribe()
 	return subscribeHandler, nil
 }

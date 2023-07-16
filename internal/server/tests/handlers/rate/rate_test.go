@@ -1,12 +1,13 @@
 package rateTest
 
 import (
-	"btc-test-task/internal/helpers/config"
-	"btc-test-task/internal/helpers/logger"
-	templatesTest "btc-test-task/internal/helpers/templates/tests"
-	"btc-test-task/internal/helpers/types"
-	"btc-test-task/internal/rateAccessors"
-	rateAccessorsTest "btc-test-task/internal/rateAccessors/tests"
+	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/currencyrate"
+	rateAccessorsTest "btc-test-task/internal/currencyrate/tests"
+	templatesTest "btc-test-task/internal/email/templates/tests"
+	"btc-test-task/internal/lifecycle"
+	"btc-test-task/internal/models"
 	"btc-test-task/internal/server/handlers"
 	"bytes"
 	"fmt"
@@ -19,11 +20,7 @@ import (
 var conf config.Config
 
 func globalSetup() error {
-	err := conf.LoadFromENV("../../../../../.env.test")
-	if err != nil {
-		return err
-	}
-	err = logger.Init(&conf)
+	err := logger.Init(&conf)
 	if err != nil {
 		return err
 	}
@@ -45,21 +42,18 @@ func createRateRequest() *http.Request {
 	return request
 }
 
-func createRateHandler(rateAccessor rateAccessors.RateAccessor) (http.HandlerFunc, error) {
-	servicesStubs := new(types.Services)
+func createRateHandler(rateAccessor handlers.RateProvider) (http.HandlerFunc, error) {
+	servicesStubs := new(lifecycle.Services)
 	servicesStubs.Templates = &templatesTest.TemplatesImplStub{}
-	servicesStubs.RateAccessor = rateAccessor
-	factory, err := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
-	if err != nil {
-		return nil, err
-	}
+	servicesStubs.RateProvider = rateAccessor
+	factory := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
 	rateHandler := factory.CreateRate()
 	return rateHandler, nil
 }
 
 func TestGetValidRate(t *testing.T) {
-	rateValue := 3849.4
-	rateHandler, err := createRateHandler(&rateAccessorsTest.RateAccessorStub{
+	rateValue := models.Rate{Value: 3849.4}
+	rateHandler, err := createRateHandler(&rateAccessorsTest.RateProviderStub{
 		Rate: rateValue,
 	})
 	if err != nil {
@@ -77,8 +71,8 @@ func TestGetValidRate(t *testing.T) {
 }
 
 func TestGetInvalidRate(t *testing.T) {
-	rateHandler, err := createRateHandler(&rateAccessorsTest.RateAccessorStub{
-		RateError: rateAccessors.ErrFailedToGetRate,
+	rateHandler, err := createRateHandler(&rateAccessorsTest.RateProviderStub{
+		RateError: currencyrate.ErrFailedToGetRate,
 	})
 	if err != nil {
 		t.Fatalf("failed to create rate handler %v", err)

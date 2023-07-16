@@ -1,18 +1,20 @@
 package handlers
 
 import (
-	"btc-test-task/internal/helpers/logger"
-	"btc-test-task/internal/rateAccessors"
+	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/currencyrate"
+	"btc-test-task/internal/models"
 	"net/http"
 
 	"github.com/pkg/errors"
 )
 
 func (factory *HandlersFactoryImpl) CreateSendEmails() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		emails := factory.services.EmailStorage.GetAllEmails()
-		rate, err := factory.services.RateAccessor.GetCurrentRate(factory.currencyFrom, factory.currencyTo)
-		if errors.Is(err, rateAccessors.ErrFailedToGetRate) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		emails := factory.services.GetEmailsRepositoryService().GetAllEmails()
+		rate, err := factory.services.GetRateProviderService().GetCurrentRate(
+			&models.Currency{CurrencyFrom: factory.currencyFrom, CurrencyTo: factory.currencyTo})
+		if errors.Is(err, currencyrate.ErrFailedToGetRate) {
 			logger.Log.Warn(err)
 			w.WriteHeader(http.StatusFailedDependency)
 			return
@@ -22,8 +24,9 @@ func (factory *HandlersFactoryImpl) CreateSendEmails() http.HandlerFunc {
 			return
 		}
 
-		go factory.services.EmailSender.BroadcastEmails(emails, factory.services.Templates.CurrencyRate(rate))
+		go factory.services.GetEmailSenderService().BroadcastEmails(
+			emails, factory.services.GetTemplatesService().CurrencyRate(rate))
 
 		w.WriteHeader(http.StatusOK)
-	})
+	}
 }

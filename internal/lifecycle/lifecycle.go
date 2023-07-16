@@ -1,13 +1,13 @@
 package lifecycle
 
 import (
-	"btc-test-task/internal/emailSender"
-	"btc-test-task/internal/emailsStorage"
-	"btc-test-task/internal/helpers/config"
-	"btc-test-task/internal/helpers/logger"
-	"btc-test-task/internal/helpers/templates"
-	"btc-test-task/internal/helpers/types"
-	"btc-test-task/internal/rateAccessors"
+	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/configuration/logger"
+	"btc-test-task/internal/currencyrate"
+	"btc-test-task/internal/email"
+	"btc-test-task/internal/email/templates"
+	"btc-test-task/internal/repository"
+	"btc-test-task/internal/repository/validators"
 	"btc-test-task/internal/server"
 	"btc-test-task/internal/server/handlers"
 	"os"
@@ -18,44 +18,37 @@ import (
 )
 
 type Lifecycle struct {
-	services        types.Services
-	handlersFactory handlers.HandlersFactory
+	services        Services
+	handlersFactory server.HandlersFactory
 	server          *server.Server
 	config          config.Config
 }
 
 func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	lifecycle.config = *conf
-	logger.Init(conf)
-	err := error(nil)
-	lifecycle.services.Templates, err = templates.NewSimpleTextTemplates(conf)
-	if err != nil {
-		return errors.Wrap(err, "Init")
-	}
-	lifecycle.services.EmailSender, err = emailSender.NewGoMailSender(conf)
+	err := logger.Init(conf)
 	if err != nil {
 		return errors.Wrap(err, "Init")
 	}
 
-	lifecycle.services.RateAccessor, err = rateAccessors.NewCoinAPI(conf)
+	lifecycle.services.Templates = templates.NewSimpleTextTemplates(conf)
+	lifecycle.services.EmailSender = email.NewGoMailSender(conf)
+
+	CoinGeckoRateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewCoinGeckoExecutor(conf))
+	CoinAPIRateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewCoinAPIExecutor(conf))
+	BinanceAPIrateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewBinanceAPIExecutor(conf))
+	CoinAPIRateProvider.SetNext(BinanceAPIrateProvider)
+	CoinGeckoRateProvider.SetNext(CoinAPIRateProvider)
+	lifecycle.services.RateProvider = CoinGeckoRateProvider
+
+	lifecycle.services.EmailsRepository, err = repository.NewJsonEmailsStorage(conf, new(validators.RegexEmailValidator))
 	if err != nil {
 		return errors.Wrap(err, "Init")
 	}
 
-	lifecycle.services.EmailStorage, err = emailsStorage.NewJsonEmailsStorage(conf)
-	if err != nil {
-		return errors.Wrap(err, "Init")
-	}
+	lifecycle.handlersFactory = handlers.NewHandlersFactoryImpl(conf, &lifecycle.services)
 
-	lifecycle.handlersFactory, err = handlers.NewHandlersFactoryImpl(conf, &lifecycle.services)
-	if err != nil {
-		return errors.Wrap(err, "Init")
-	}
-
-	lifecycle.server, err = server.NewServer(conf, lifecycle.handlersFactory)
-	if err != nil {
-		return errors.Wrap(err, "Init")
-	}
+	lifecycle.server = server.NewServer(conf, lifecycle.handlersFactory)
 
 	logger.Log.Infof("The server is listening on port: %v", conf.Port)
 
@@ -68,7 +61,7 @@ func (lifecycle *Lifecycle) Run() error {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 
-	defer lifecycle.services.EmailStorage.Close()
+	defer lifecycle.services.EmailsRepository.Close()
 
 	go func() {
 		done <- lifecycle.server.Run()

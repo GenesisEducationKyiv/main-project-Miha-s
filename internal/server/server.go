@@ -1,8 +1,7 @@
 package server
 
 import (
-	"btc-test-task/internal/helpers/config"
-	"btc-test-task/internal/server/handlers"
+	"btc-test-task/internal/configuration/config"
 	"fmt"
 
 	"net/http"
@@ -12,21 +11,25 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+type HandlersFactory interface {
+	CreateRate() http.HandlerFunc
+	CreateSubscribe() http.HandlerFunc
+	CreateSendEmails() http.HandlerFunc
+}
+
 type Server struct {
 	router chi.Router
 	port   uint
 }
 
-func NewServer(conf *config.Config, handlersFactory handlers.HandlersFactory) (*Server, error) {
+func NewServer(conf *config.Config, handlersFactory HandlersFactory) *Server {
 	newServer := new(Server)
-	err := newServer.init(conf, handlersFactory)
-	if err != nil {
-		return nil, err
-	}
-	return newServer, nil
+	newServer.init(conf, handlersFactory)
+
+	return newServer
 }
 
-func (serv *Server) init(conf *config.Config, handlersFactory handlers.HandlersFactory) error {
+func (serv *Server) init(conf *config.Config, handlersFactory HandlersFactory) {
 	serv.port = conf.Port
 
 	serv.router = chi.NewRouter()
@@ -42,8 +45,6 @@ func (serv *Server) init(conf *config.Config, handlersFactory handlers.HandlersF
 		r.Post("/subscribe", handlersFactory.CreateSubscribe())
 		r.Post("/sendEmails", handlersFactory.CreateSendEmails())
 	})
-
-	return nil
 }
 
 func (serv *Server) Run() error {

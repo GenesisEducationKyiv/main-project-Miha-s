@@ -1,8 +1,8 @@
 package main
 
 import (
-	"btc-test-task/internal/helpers/config"
-	"btc-test-task/internal/helpers/logger"
+	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/configuration/logger"
 	"btc-test-task/internal/lifecycle"
 )
 
