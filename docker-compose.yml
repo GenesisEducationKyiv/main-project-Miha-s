@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   btc-test-task:
-    build: .
+    build: ./rate-app
     image: btc-test-task
     ports:
       - '2777:2777'
