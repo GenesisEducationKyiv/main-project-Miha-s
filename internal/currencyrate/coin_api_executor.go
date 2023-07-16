@@ -3,7 +3,6 @@ package currencyrate
 import (
 	"btc-test-task/internal/common/configuration/config"
 	"btc-test-task/internal/common/models"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -40,12 +39,12 @@ func (api *CoinAPIExecutor) GenerateHttpRequest(currency *models.Currency) (*htt
 	return req, nil
 }
 
-func (api *CoinAPIExecutor) ExtractRate(jsonValue []byte, _ *models.Currency) (models.Rate, error) {
+func (api *CoinAPIExecutor) ExtractRate(resp *http.Response, _ *models.Currency) (models.Rate, error) {
 	rate := struct {
 		Rate float64 `json:"rate"`
 	}{}
 
-	decoder := json.NewDecoder(bytes.NewReader(jsonValue))
+	decoder := json.NewDecoder(resp.Body)
 	err := decoder.Decode(&rate)
 	if err != nil {
 		return models.Rate{}, errors.Wrap(ErrFailedToGetRate, "ExtractRate")
@@ -58,4 +57,8 @@ func (api *CoinAPIExecutor) ExtractRate(jsonValue []byte, _ *models.Currency) (m
 
 func (api *CoinAPIExecutor) generateEndpoint(currency *models.Currency) string {
 	return fmt.Sprintf(api.endpoint, currency.From, currency.To)
+}
+
+func (api *CoinAPIExecutor) Name() string {
+	return "CoinAPI"
 }

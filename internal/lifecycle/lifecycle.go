@@ -56,9 +56,12 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 }
 
 func composeRateProvider(conf *config.Config) (handlers.RateProvider, error) {
-	CoinGeckoRateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewCoinGeckoExecutor(conf), http.DefaultClient)
-	CoinAPIRateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewCoinAPIExecutor(conf), http.DefaultClient)
-	BinanceAPIrateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewBinanceAPIExecutor(conf), http.DefaultClient)
+	CoinGeckoRateProvider := currencyrate.NewHttpRateProvider(
+		currencyrate.NewRateLoggingDecorator(currencyrate.NewCoinGeckoExecutor(conf)), http.DefaultClient)
+	CoinAPIRateProvider := currencyrate.NewHttpRateProvider(
+		currencyrate.NewRateLoggingDecorator(currencyrate.NewCoinAPIExecutor(conf)), http.DefaultClient)
+	BinanceAPIrateProvider := currencyrate.NewHttpRateProvider(
+		currencyrate.NewRateLoggingDecorator(currencyrate.NewBinanceAPIExecutor(conf)), http.DefaultClient)
 	CoinAPIRateProvider.SetNext(BinanceAPIrateProvider)
 	CoinGeckoRateProvider.SetNext(CoinAPIRateProvider)
 

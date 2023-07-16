@@ -80,6 +80,10 @@ type rateExecutorStub struct {
 func (executor *rateExecutorStub) GenerateHttpRequest(_ *models.Currency) (*http.Request, error) {
 	return &executor.Request, executor.RequestErr
 }
-func (executor *rateExecutorStub) ExtractRate(_ []byte, _ *models.Currency) (models.Rate, error) {
+func (executor *rateExecutorStub) ExtractRate(_ *http.Response, _ *models.Currency) (models.Rate, error) {
 	return executor.Rate, executor.RateErr
+}
+
+func (executor *rateExecutorStub) Name() string {
+	return "Executor name"
 }

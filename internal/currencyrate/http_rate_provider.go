@@ -3,15 +3,15 @@ package currencyrate
 import (
 	"btc-test-task/internal/common/configuration/logger"
 	"btc-test-task/internal/common/models"
-	"io"
 	"net/http"
 
 	"github.com/pkg/errors"
 )
 
-type HttpRateExecutor interface {
+type NamedHttpRateExecutor interface {
 	GenerateHttpRequest(currency *models.Currency) (*http.Request, error)
-	ExtractRate(resp []byte, currency *models.Currency) (models.Rate, error)
+	ExtractRate(resp *http.Response, currency *models.Currency) (models.Rate, error)
+	Name() string
 }
 
 type RateProviderChain interface {
@@ -25,11 +25,11 @@ type HttpClient interface {
 
 type HttpRateProvider struct {
 	nextProvider RateProviderChain
-	executor     HttpRateExecutor
+	executor     NamedHttpRateExecutor
 	client       HttpClient
 }
 
-func NewHttpRateProvider(executor HttpRateExecutor, client HttpClient) *HttpRateProvider {
+func NewHttpRateProvider(executor NamedHttpRateExecutor, client HttpClient) *HttpRateProvider {
 	return &HttpRateProvider{
 		executor: executor,
 		client:   client,
@@ -68,7 +68,6 @@ func (api *HttpRateProvider) getRate(currency *models.Currency) (models.Rate, er
 		return currentRate, err
 	}
 
-	logger.Log.Infof("Current rate %v", currentRate.Value)
 	return currentRate, nil
 }
 
@@ -87,16 +86,9 @@ func (api *HttpRateProvider) executeRateRequest(currency *models.Currency) (*htt
 }
 
 func (api *HttpRateProvider) parseRateResponse(response *http.Response, currency *models.Currency) (models.Rate, error) {
-	currentRate := models.Rate{}
-
-	responseValue, err := io.ReadAll(response.Body)
+	currentRate, err := api.executor.ExtractRate(response, currency)
 	if err != nil {
-		return currentRate, errors.Wrap(ErrFailedToGetRate, "parseRateResponse")
-	}
-
-	currentRate, err = api.executor.ExtractRate(responseValue, currency)
-	if err != nil {
-		logger.Log.Errorf("failed to extract rate, response: %v", string(responseValue))
+		logger.Log.Errorf("failed to extract rate, provider: %v", api.executor.Name())
 		return currentRate, errors.Wrap(err, "parseRateResponse")
 	}
 

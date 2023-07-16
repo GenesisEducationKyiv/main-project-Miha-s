@@ -2,9 +2,11 @@ package currencyrate
 
 import (
 	"btc-test-task/internal/common/configuration/config"
+	"btc-test-task/internal/common/configuration/logger"
 	"btc-test-task/internal/common/models"
 	"time"
 
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 )
 
@@ -17,12 +19,8 @@ type RateProvider interface {
 }
 
 type RateCache struct {
-	cacheDuration time.Duration
-	rateProvider  RateProvider
-	TimeProvider  TimeProvider
-
-	lastRequestTime time.Time
-	lastRate        models.Rate
+	rateProvider RateProvider
+	cache        *cache.Cache
 }
 
 func NewRateCache(config *config.Config, rateProvider RateProvider, timeProvider TimeProvider) (*RateCache, error) {
@@ -30,21 +28,31 @@ func NewRateCache(config *config.Config, rateProvider RateProvider, timeProvider
 	if err != nil {
 		return nil, errors.Wrap(err, "NewRateCache")
 	}
-	lastRequestTime := time.Now().Add(-duration)
 
 	return &RateCache{
-		rateProvider:    rateProvider,
-		TimeProvider:    timeProvider,
-		cacheDuration:   duration,
-		lastRequestTime: lastRequestTime,
+		rateProvider: rateProvider,
+		cache:        cache.New(duration, duration),
 	}, nil
 }
 
-func (cache *RateCache) GetCurrentRate(currency *models.Currency) (models.Rate, error) {
-	diffDuration := cache.TimeProvider.Now().Sub(cache.lastRequestTime)
-	if diffDuration >= cache.cacheDuration {
-		return cache.rateProvider.GetCurrentRate(currency)
+func (c *RateCache) GetCurrentRate(currency *models.Currency) (models.Rate, error) {
+	cachedRate, exists := c.cache.Get(c.key(currency))
+	if exists {
+		return cachedRate.(models.Rate), nil
+	}
+	rate, err := c.rateProvider.GetCurrentRate(currency)
+	if err != nil {
+		return models.Rate{}, err
 	}
 
-	return cache.lastRate, nil
+	err = c.cache.Add(c.key(currency), rate, cache.DefaultExpiration)
+	if err != nil {
+		logger.Log.Errorf("Failed to save cache %v", err)
+	}
+
+	return rate, nil
+}
+
+func (c *RateCache) key(currency *models.Currency) string {
+	return currency.From + currency.To
 }
