@@ -34,7 +34,7 @@ func globalSetup() error {
 	if err != nil {
 		return err
 	}
-	err = logger.Init(&conf)
+	err = logger.Init(&conf, &LoggerWriterStub{})
 	if err != nil {
 		return err
 	}
@@ -157,3 +157,8 @@ func TestLoadFromPersistence(t *testing.T) {
 	missingEmailTest(ok, email2, t)
 	tearDown(t)
 }
+
+type LoggerWriterStub struct{}
+
+func (_ *LoggerWriterStub) Write(p []byte) (n int, err error) { return 0, nil }
+func (_ *LoggerWriterStub) Close()                            {}

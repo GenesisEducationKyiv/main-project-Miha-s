@@ -1,7 +1,28 @@
 version: '3.4'
 services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 7s
+      retries: 10
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=VeryStroNgAndUniqUePassWord*2s
   btc-test-task:
+    restart: always
     build: ./rate-app
     image: btc-test-task
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     ports:
       - '2777:2777'
+    environment:
+      - RABBIT_USERNAME=admin
+      - RABBIT_PASSWORD=VeryStroNgAndUniqUePassWord*2s

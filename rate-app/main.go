@@ -22,7 +22,7 @@ func main() {
 
 	err = lifeCycle.Run()
 	if err != nil {
-		logger.Log.Error(err)
+		panic(err)
 		return
 	}
 }

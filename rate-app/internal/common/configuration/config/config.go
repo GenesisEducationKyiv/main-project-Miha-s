@@ -28,6 +28,9 @@ type Config struct {
 	RateCacheDuration       time.Duration
 	LogLevel                string
 	LogFile                 string
+	RabbitUsername          string
+	RabbitPassword          string
+	RabbitUrlPort           string
 }
 
 func (conf *Config) LoadFromENV(envFilePath string) error {
@@ -65,6 +68,10 @@ func (conf *Config) LoadFromENV(envFilePath string) error {
 
 	conf.LogLevel = os.Getenv("LOG_LEVEL")
 	conf.LogFile = os.Getenv("LOG_FILE")
+
+	conf.RabbitUsername = os.Getenv("RABBIT_USERNAME")
+	conf.RabbitPassword = os.Getenv("RABBIT_PASSWORD")
+	conf.RabbitUrlPort = os.Getenv("RABBIT_URL_PORT")
 
 	return nil
 }
