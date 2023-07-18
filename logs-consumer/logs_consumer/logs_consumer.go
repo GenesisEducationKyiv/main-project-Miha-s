@@ -2,10 +2,12 @@ package logs_consumer
 
 import (
 	"fmt"
+	"log"
+	"logs-consumer/config"
+	"os"
+
 	"github.com/pkg/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
-	"os"
 )
 
 type LogsConsumer struct {
@@ -18,11 +20,11 @@ type LogsConsumer struct {
 	exchangeName string
 }
 
-func NewLogsConsumer(name, pass, urlPort string) (*LogsConsumer, error) {
+func NewLogsConsumer(cred config.Credentials) (*LogsConsumer, error) {
 	consumer := &LogsConsumer{
-		name:         name,
-		password:     pass,
-		urlPort:      urlPort,
+		name:         cred.Username,
+		password:     cred.Password,
+		urlPort:      cred.Host,
 		exchangeName: "logs",
 	}
 
@@ -60,6 +62,7 @@ func (consumer *LogsConsumer) Listen() error {
 
 	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
 	<-forever
+	log.Printf("Someone pressed Ctrl+C")
 	return nil
 }
 

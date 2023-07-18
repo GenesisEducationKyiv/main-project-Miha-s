@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        workdir: ['./rate-app']
+        workdir: ['rate-app', 'logs-consumer']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -17,7 +17,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.53
-          working-directory: ./${{ matrix.workdir }}
+          working-directory: ${{ matrix.workdir }}
 
   build-and-tests:
     name: Build and tests

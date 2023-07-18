@@ -5,10 +5,11 @@ import (
 	"btc-test-task/internal/common/configuration/logger"
 	"context"
 	"fmt"
-	"github.com/go-chi/chi/v5/middleware"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"net/http"
 	"time"
+
+	"github.com/go-chi/chi/v5/middleware"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type RabbitMQLogger struct {

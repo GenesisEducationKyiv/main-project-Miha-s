@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.3'
 services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -18,11 +18,28 @@ services:
     restart: always
     build: ./rate-app
     image: btc-test-task
+    volumes:
+      - ./storage:/storage
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      server-logging:
+        condition: service_started
     ports:
       - '2777:2777'
     environment:
       - RABBIT_USERNAME=admin
       - RABBIT_PASSWORD=VeryStroNgAndUniqUePassWord*2s
+      - RABBIT_URL_PORT=rabbitmq:5672/
+
+  server-logging:
+    restart: always
+    build: ./logs-consumer
+    image: logs-consumer
+    volumes:
+      - ./logs:/logs
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - RABBIT_USERNAME=admin
+      - RABBIT_PASSWORD=VeryStroNgAndUniqUePassWord*2s
+      - RABBIT_URL_PORT=rabbitmq:5672/

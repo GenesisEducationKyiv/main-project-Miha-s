@@ -2,11 +2,13 @@ package main
 
 import (
 	"log"
+	"logs-consumer/config"
 	"logs-consumer/logs_consumer"
 )
 
 func main() {
-	consumer, err := logs_consumer.NewLogsConsumer("admin", "VeryStroNgAndUniqUePassWord*2s", "localhost:5672/")
+	cred := config.LoadCredentials()
+	consumer, err := logs_consumer.NewLogsConsumer(cred)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -63,7 +63,7 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	lifecycle.middlewareLogger = middlewareLogger
 	lifecycle.server = server.NewServer(conf, lifecycle.handlersFactory, middlewareLogger.MiddlewareLogger())
 
-	logger.Log.Infof("The server is listening on port: %v", conf.Port)
+	logger.Log.Infof("Server port is: %v", conf.Port)
 
 	return nil
 }
@@ -110,6 +110,8 @@ func (lifecycle *Lifecycle) Run() error {
 	defer lifecycle.loggerWriter.Close()
 	defer lifecycle.middlewareLogger.Close()
 	defer lifecycle.server.Shutdown()
+
+	logger.Log.Info("The server has started")
 
 	go func() {
 		done <- lifecycle.server.Run()
