@@ -1,8 +1,8 @@
 package currencyrate
 
 import (
-	"btc-test-task/internal/configuration/logger"
-	models "btc-test-task/internal/models"
+	"btc-test-task/internal/common/configuration/logger"
+	models2 "btc-test-task/internal/common/models"
 	"io"
 	"net/http"
 
@@ -10,12 +10,12 @@ import (
 )
 
 type HttpRateExecutor interface {
-	GenerateHttpRequest(currency *models.Currency) (*http.Request, error)
-	ExtractRate(resp []byte, currency *models.Currency) (models.Rate, error)
+	GenerateHttpRequest(currency *models2.Currency) (*http.Request, error)
+	ExtractRate(resp []byte, currency *models2.Currency) (models2.Rate, error)
 }
 
 type RateProviderChain interface {
-	GetCurrentRate(currency *models.Currency) (models.Rate, error)
+	GetCurrentRate(currency *models2.Currency) (models2.Rate, error)
 	SetNext(provider RateProviderChain)
 }
 
@@ -34,7 +34,7 @@ func (api *HttpRateProvider) SetNext(provider RateProviderChain) {
 	api.nextProvider = provider
 }
 
-func (api *HttpRateProvider) GetCurrentRate(currency *models.Currency) (models.Rate, error) {
+func (api *HttpRateProvider) GetCurrentRate(currency *models2.Currency) (models2.Rate, error) {
 	rate, err := api.getRate(currency)
 	if err == nil {
 		return rate, nil
@@ -47,11 +47,10 @@ func (api *HttpRateProvider) GetCurrentRate(currency *models.Currency) (models.R
 		return rate, errors.Wrap(err, "GetCurrentRate")
 	}
 	return rate, nil
-
 }
 
-func (api *HttpRateProvider) getRate(currency *models.Currency) (models.Rate, error) {
-	currentRate := models.Rate{}
+func (api *HttpRateProvider) getRate(currency *models2.Currency) (models2.Rate, error) {
+	currentRate := models2.Rate{}
 	res, err := api.executeRateRequest(currency)
 	defer res.Body.Close()
 	if err != nil {
@@ -67,7 +66,7 @@ func (api *HttpRateProvider) getRate(currency *models.Currency) (models.Rate, er
 	return currentRate, nil
 }
 
-func (api *HttpRateProvider) executeRateRequest(currency *models.Currency) (*http.Response, error) {
+func (api *HttpRateProvider) executeRateRequest(currency *models2.Currency) (*http.Response, error) {
 	req, err := api.executor.GenerateHttpRequest(currency)
 	if err != nil {
 		logger.Log.Error(err)
@@ -81,8 +80,8 @@ func (api *HttpRateProvider) executeRateRequest(currency *models.Currency) (*htt
 	return res, nil
 }
 
-func (api *HttpRateProvider) parseRateResponse(response *http.Response, currency *models.Currency) (models.Rate, error) {
-	currentRate := models.Rate{}
+func (api *HttpRateProvider) parseRateResponse(response *http.Response, currency *models2.Currency) (models2.Rate, error) {
+	currentRate := models2.Rate{}
 
 	responseValue, err := io.ReadAll(response.Body)
 	if err != nil {

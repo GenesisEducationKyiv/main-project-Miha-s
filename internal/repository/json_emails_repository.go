@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"btc-test-task/internal/configuration/config"
-	"btc-test-task/internal/configuration/logger"
-	"btc-test-task/internal/models"
+	"btc-test-task/internal/common/configuration/config"
+	"btc-test-task/internal/common/configuration/logger"
+	"btc-test-task/internal/common/models"
 	"encoding/json"
 	"os"
 

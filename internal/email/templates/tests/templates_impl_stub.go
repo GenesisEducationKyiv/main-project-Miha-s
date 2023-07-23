@@ -1,7 +1,7 @@
 package templatesTest
 
 import (
-	"btc-test-task/internal/models"
+	"btc-test-task/internal/common/models"
 )
 
 type TemplatesImplStub struct {

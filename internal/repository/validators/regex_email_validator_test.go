@@ -1,7 +1,7 @@
 package validators
 
 import (
-	"btc-test-task/internal/models"
+	"btc-test-task/internal/common/models"
 	"testing"
 )
 

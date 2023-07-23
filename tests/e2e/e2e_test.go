@@ -1,7 +1,7 @@
 package e2e
 
 import (
-	"btc-test-task/internal/configuration/config"
+	"btc-test-task/internal/common/configuration/config"
 	"bytes"
 	"fmt"
 	"net/http"
@@ -12,14 +12,14 @@ import (
 var conf config.Config
 
 func globalSetup() error {
-	err := conf.LoadFromENV("../.env")
+	err := conf.LoadFromENV("../../.env")
 	return err
 }
 
 func TestMain(m *testing.M) {
 	err := globalSetup()
 	if err != nil {
-		os.Exit(2)
+		panic("Failed to load configuration")
 	}
 	code := m.Run()
 	os.Exit(code)
