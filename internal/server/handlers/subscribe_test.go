@@ -1,39 +1,25 @@
-package subscribeTest
+package handlers
 
 import (
-	"btc-test-task/internal/common/configuration/config"
 	"btc-test-task/internal/common/configuration/logger"
 	"btc-test-task/internal/common/models"
-	"btc-test-task/internal/lifecycle"
-	emailsStorageTest "btc-test-task/internal/repository/tests"
-	"btc-test-task/internal/server/handlers"
 	"bytes"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 )
 
-var conf config.Config
-
-func globalSetup() error {
+func TestSubscribe(t *testing.T) {
 	err := logger.Init(&conf)
 	if err != nil {
-		return err
+		t.Fatalf("Failed to initialize logger: %v", err)
 	}
-	return nil
-}
 
-func TestMain(m *testing.M) {
-	err := globalSetup()
-	if err != nil {
-		panic(fmt.Sprintf("failed to setup test %v", err))
-	}
-	code := m.Run()
-
-	os.Exit(code)
+	t.Run("SubscribeValidRequest", testSubscribeValidRequest)
+	t.Run("SubscribeInvalidRequest", testSubscribeInvalidRequest)
+	t.Run("SubscribeExistingEmail", testSubscribeExistingEmail)
 }
 
 func createSubscribeBody(email models.Email) io.Reader {
@@ -47,19 +33,19 @@ func createSubscribeRequest(body io.Reader) *http.Request {
 }
 
 func createSubscribeHandler() (http.HandlerFunc, error) {
-	servicesStubs := new(lifecycle.Services)
-	servicesStubs.EmailsRepository = &emailsStorageTest.EmailsStorageStub{}
-	factory := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
+	servicesStubs := new(ServicesStub)
+	servicesStubs.EmailsRepository = &emailsStorageStub{}
+	factory := NewHandlersFactoryImpl(&conf, servicesStubs)
 	subscribeHandler := factory.CreateSubscribe()
 	return subscribeHandler, nil
 }
 
-func TestSubscribeValidRequest(t *testing.T) {
+func testSubscribeValidRequest(t *testing.T) {
 	subscribeHandler, err := createSubscribeHandler()
 	if err != nil {
 		t.Fatalf("failed to create subscribe handler %v", err)
 	}
-	body := createSubscribeBody(emailsStorageTest.GoodEmail)
+	body := createSubscribeBody(GoodEmail)
 	goodSubscribeRequest := createSubscribeRequest(body)
 	writer := httptest.NewRecorder()
 	expectedStatus := http.StatusOK
@@ -71,12 +57,12 @@ func TestSubscribeValidRequest(t *testing.T) {
 	}
 }
 
-func TestSubscribeInvalidRequest(t *testing.T) {
+func testSubscribeInvalidRequest(t *testing.T) {
 	subscribeHandler, err := createSubscribeHandler()
 	if err != nil {
 		t.Fatalf("failed to create subscribe handler %v", err)
 	}
-	body := createSubscribeBody(emailsStorageTest.BadEmail)
+	body := createSubscribeBody(BadEmail)
 	badSubscribeRequest := createSubscribeRequest(body)
 	writer := httptest.NewRecorder()
 	expectedStatus := http.StatusBadRequest
@@ -88,12 +74,12 @@ func TestSubscribeInvalidRequest(t *testing.T) {
 	}
 }
 
-func TestSubscribeExistingEmail(t *testing.T) {
+func testSubscribeExistingEmail(t *testing.T) {
 	subscribeHandler, err := createSubscribeHandler()
 	if err != nil {
 		t.Fatalf("failed to create subscribe handler %v", err)
 	}
-	body := createSubscribeBody(emailsStorageTest.ExistingEmail)
+	body := createSubscribeBody(ExistingEmail)
 	badSubscribeRequest := createSubscribeRequest(body)
 	writer := httptest.NewRecorder()
 	expectedStatus := http.StatusConflict

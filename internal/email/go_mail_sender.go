@@ -22,23 +22,8 @@ func NewGoMailSender(conf *config.Config) *GoMailSender {
 	return newEmailSender
 }
 
-func (sender *GoMailSender) init(conf *config.Config) {
-	sender.dialer = *gomail.NewDialer(conf.EmailServiceUrl, conf.EmailServicePort,
-		conf.EmailToSendFrom, conf.EmailToSendFromPassword)
-
-	sender.email = conf.EmailToSendFrom
-	sender.subject = conf.EmailSubject
-	sender.dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-	sender.subject = conf.EmailSubject
-}
-
 func (sender *GoMailSender) SendEmail(recipient models.Email, body string) error {
-	message := gomail.NewMessage()
-	message.SetHeader("From", sender.email)
-	message.SetHeader("To", recipient.Value)
-	message.SetHeader("Subject", sender.subject)
-	message.SetBody("text/plain", body)
+	message := sender.generateEmailMessage(recipient, body)
 
 	if err := sender.dialer.DialAndSend(message); err != nil {
 		logger.Log.Error(err)
@@ -54,4 +39,25 @@ func (sender *GoMailSender) BroadcastEmails(recipients map[models.Email]struct{}
 			logger.Log.Warn(err)
 		}
 	}
+}
+
+func (sender *GoMailSender) init(conf *config.Config) {
+	sender.dialer = *gomail.NewDialer(conf.EmailServiceUrl, conf.EmailServicePort,
+		conf.EmailToSendFrom, conf.EmailToSendFromPassword)
+
+	sender.email = conf.EmailToSendFrom
+	sender.subject = conf.EmailSubject
+	sender.dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	sender.subject = conf.EmailSubject
+}
+
+func (sender *GoMailSender) generateEmailMessage(recipient models.Email, body string) *gomail.Message {
+	message := gomail.NewMessage()
+	message.SetHeader("From", sender.email)
+	message.SetHeader("To", recipient.Value)
+	message.SetHeader("Subject", sender.subject)
+	message.SetBody("text/plain", body)
+
+	return message
 }

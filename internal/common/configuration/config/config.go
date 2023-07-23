@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -24,6 +25,7 @@ type Config struct {
 	BinanceAPIUrl           string
 	CurrencyFrom            string
 	CurrencyTo              string
+	RateCacheDuration       time.Duration
 	LogLevel                string
 	LogFile                 string
 }
@@ -35,7 +37,7 @@ func (conf *Config) LoadFromENV(envFilePath string) error {
 	}
 
 	port, err := strconv.Atoi(os.Getenv("PORT"))
-	if err != nil {
+	if err != nil || port < 0 {
 		return errors.Wrap(err, "LoadFromENV")
 	}
 	conf.Port = uint(port)
@@ -46,6 +48,11 @@ func (conf *Config) LoadFromENV(envFilePath string) error {
 	conf.BinanceAPIUrl = os.Getenv("BINANCEAPI_URL")
 	conf.CurrencyFrom = os.Getenv("CURRENCY_FROM")
 	conf.CurrencyTo = os.Getenv("CURRENCY_TO")
+	duration := os.Getenv("RATE_CACHE_DURATION")
+	conf.RateCacheDuration, err = time.ParseDuration(duration)
+	if err != nil {
+		return errors.Wrap(err, "LoadFromENV")
+	}
 
 	conf.EmailStorageName = os.Getenv("EMAIL_STORAGE_NAME")
 	conf.EmailStoragePath = os.Getenv("EMAIL_STORAGE_PATH")

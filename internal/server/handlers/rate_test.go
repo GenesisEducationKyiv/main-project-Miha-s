@@ -1,40 +1,22 @@
-package rateTest
+package handlers
 
 import (
-	"btc-test-task/internal/common/configuration/config"
 	"btc-test-task/internal/common/configuration/logger"
 	"btc-test-task/internal/common/models"
 	"btc-test-task/internal/currencyrate"
-	rateAccessorsTest "btc-test-task/internal/currencyrate/tests"
-	templatesTest "btc-test-task/internal/email/templates/tests"
-	"btc-test-task/internal/lifecycle"
-	"btc-test-task/internal/server/handlers"
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 )
 
-var conf config.Config
-
-func globalSetup() error {
+func TestRateHandler(t *testing.T) {
 	err := logger.Init(&conf)
 	if err != nil {
-		return err
+		t.Fatalf("Failed to initilize logger: %v", err)
 	}
-	return nil
-}
-
-func TestMain(m *testing.M) {
-	err := globalSetup()
-	if err != nil {
-		panic(fmt.Sprintf("failed to setup test %v", err))
-	}
-	code := m.Run()
-
-	os.Exit(code)
+	t.Run("GetValidRate", testGetValidRate)
+	t.Run("GetInvalidRate", testGetInvalidRate)
 }
 
 func createRateRequest() *http.Request {
@@ -42,18 +24,18 @@ func createRateRequest() *http.Request {
 	return request
 }
 
-func createRateHandler(rateAccessor handlers.RateProvider) (http.HandlerFunc, error) {
-	servicesStubs := new(lifecycle.Services)
-	servicesStubs.Templates = &templatesTest.TemplatesImplStub{}
+func createRateHandler(rateAccessor RateProvider) (http.HandlerFunc, error) {
+	servicesStubs := new(ServicesStub)
+	servicesStubs.Templates = &templatesImplStub{}
 	servicesStubs.RateProvider = rateAccessor
-	factory := handlers.NewHandlersFactoryImpl(&conf, servicesStubs)
+	factory := NewHandlersFactoryImpl(&conf, servicesStubs)
 	rateHandler := factory.CreateRate()
 	return rateHandler, nil
 }
 
-func TestGetValidRate(t *testing.T) {
+func testGetValidRate(t *testing.T) {
 	rateValue := models.Rate{Value: 3849.4}
-	rateHandler, err := createRateHandler(&rateAccessorsTest.RateProviderStub{
+	rateHandler, err := createRateHandler(&rateProviderStub{
 		Rate: rateValue,
 	})
 	if err != nil {
@@ -70,8 +52,8 @@ func TestGetValidRate(t *testing.T) {
 	}
 }
 
-func TestGetInvalidRate(t *testing.T) {
-	rateHandler, err := createRateHandler(&rateAccessorsTest.RateProviderStub{
+func testGetInvalidRate(t *testing.T) {
+	rateHandler, err := createRateHandler(&rateProviderStub{
 		RateError: currencyrate.ErrFailedToGetRate,
 	})
 	if err != nil {

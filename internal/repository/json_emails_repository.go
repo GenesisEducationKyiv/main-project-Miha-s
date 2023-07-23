@@ -32,6 +32,42 @@ func NewJsonEmailsStorage(conf *config.Config, emailValidator EmailValidator) (*
 	return newJsonEmailsStorage, nil
 }
 
+func (storage *JsonEmailsStorage) AddEmail(email *models.Email) error {
+	if !storage.validator.ValidateEmail(email) {
+		return ErrInvalidEmailAddress
+	}
+
+	if storage.emailExists(email) {
+		return ErrEmailAlreadyExists
+	}
+	storage.emails[*email] = struct{}{}
+	return storage.sync()
+}
+
+func (storage *JsonEmailsStorage) GetAllEmails() map[models.Email]struct{} {
+	return storage.emails
+}
+
+func (storage *JsonEmailsStorage) RemoveEmail(email *models.Email) error {
+	if !storage.emailExists(email) {
+		return ErrEmailDoesNotExists
+	}
+	delete(storage.emails, *email)
+	return storage.sync()
+}
+
+func (storage *JsonEmailsStorage) Close() {
+	logger.Log.Info("Closing file storage")
+	err := storage.sync()
+	if err != nil {
+		logger.Log.Error("Was not able to sync before closing file")
+	}
+	err = storage.storageFile.Close()
+	if err != nil {
+		logger.Log.Error("Was not able to close the file")
+	}
+}
+
 func (storage *JsonEmailsStorage) init(conf *config.Config) error {
 	storage.storageName = conf.EmailStorageName
 	storage.emails = make(map[models.Email]struct{})
@@ -60,55 +96,9 @@ func (storage *JsonEmailsStorage) initStorageFile() error {
 	return nil
 }
 
-func getArrayFromSet(set map[models.Email]struct{}) []models.Email {
-	result := make([]models.Email, 0)
-
-	for key := range set {
-		result = append(result, key)
-	}
-
-	return result
-}
-
-func (storage *JsonEmailsStorage) Close() {
-	logger.Log.Info("Closing file storage")
-	err := storage.sync()
-	if err != nil {
-		logger.Log.Error("Was not able to sync before closing file")
-	}
-	err = storage.storageFile.Close()
-	if err != nil {
-		logger.Log.Error("Was not able to close the file")
-	}
-}
-
 func (storage *JsonEmailsStorage) emailExists(email *models.Email) bool {
 	_, ok := storage.emails[*email]
 	return ok
-}
-
-func (storage *JsonEmailsStorage) AddEmail(email *models.Email) error {
-	if !storage.validator.ValidateEmail(email) {
-		return ErrInvalidEmailAddress
-	}
-
-	if storage.emailExists(email) {
-		return ErrEmailAlreadyExists
-	}
-	storage.emails[*email] = struct{}{}
-	return storage.sync()
-}
-
-func (storage *JsonEmailsStorage) GetAllEmails() map[models.Email]struct{} {
-	return storage.emails
-}
-
-func (storage *JsonEmailsStorage) RemoveEmail(email *models.Email) error {
-	if !storage.emailExists(email) {
-		return ErrEmailDoesNotExists
-	}
-	delete(storage.emails, *email)
-	return storage.sync()
 }
 
 func (storage *JsonEmailsStorage) uploadFromFile() error {
@@ -154,4 +144,14 @@ func (storage *JsonEmailsStorage) sync() error {
 		return ErrFailedSyncStorage
 	}
 	return nil
+}
+
+func getArrayFromSet(set map[models.Email]struct{}) []models.Email {
+	result := make([]models.Email, 0)
+
+	for key := range set {
+		result = append(result, key)
+	}
+
+	return result
 }

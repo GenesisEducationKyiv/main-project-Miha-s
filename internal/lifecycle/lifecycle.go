@@ -10,10 +10,12 @@ import (
 	"btc-test-task/internal/repository/validators"
 	"btc-test-task/internal/server"
 	"btc-test-task/internal/server/handlers"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 )
 
@@ -34,12 +36,10 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	lifecycle.services.Templates = templates.NewSimpleTextTemplates(conf)
 	lifecycle.services.EmailSender = email.NewGoMailSender(conf)
 
-	CoinGeckoRateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewCoinGeckoExecutor(conf))
-	CoinAPIRateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewCoinAPIExecutor(conf))
-	BinanceAPIrateProvider := currencyrate.NewHttpRateProvider(currencyrate.NewBinanceAPIExecutor(conf))
-	CoinAPIRateProvider.SetNext(BinanceAPIrateProvider)
-	CoinGeckoRateProvider.SetNext(CoinAPIRateProvider)
-	lifecycle.services.RateProvider = CoinGeckoRateProvider
+	lifecycle.services.RateProvider, err = composeRateProvider(conf)
+	if err != nil {
+		return errors.Wrap(err, "Init")
+	}
 
 	lifecycle.services.EmailsRepository, err = repository.NewJsonEmailsStorage(conf, new(validators.RegexEmailValidator))
 	if err != nil {
@@ -53,6 +53,24 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	logger.Log.Infof("The server is listening on port: %v", conf.Port)
 
 	return nil
+}
+
+func composeRateProvider(conf *config.Config) (handlers.RateProvider, error) {
+	CoinGeckoRateProvider := currencyrate.NewHttpRateProvider(
+		currencyrate.NewRateLoggingDecorator(currencyrate.NewCoinGeckoExecutor(conf)), http.DefaultClient)
+	CoinAPIRateProvider := currencyrate.NewHttpRateProvider(
+		currencyrate.NewRateLoggingDecorator(currencyrate.NewCoinAPIExecutor(conf)), http.DefaultClient)
+	BinanceAPIrateProvider := currencyrate.NewHttpRateProvider(
+		currencyrate.NewRateLoggingDecorator(currencyrate.NewBinanceAPIExecutor(conf)), http.DefaultClient)
+	CoinAPIRateProvider.SetNext(BinanceAPIrateProvider)
+	CoinGeckoRateProvider.SetNext(CoinAPIRateProvider)
+
+	rateCache, err := currencyrate.NewRateCache(conf, CoinGeckoRateProvider,
+		cache.New(conf.RateCacheDuration, conf.RateCacheDuration))
+	if err != nil {
+		return nil, err
+	}
+	return rateCache, nil
 }
 
 func (lifecycle *Lifecycle) Run() error {

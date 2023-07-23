@@ -2,8 +2,7 @@ package currencyrate
 
 import (
 	"btc-test-task/internal/common/configuration/config"
-	models2 "btc-test-task/internal/common/models"
-	"bytes"
+	"btc-test-task/internal/common/models"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -23,7 +22,7 @@ func NewCoinAPIExecutor(conf *config.Config) *CoinAPIExecutor {
 	}
 }
 
-func (api *CoinAPIExecutor) GenerateHttpRequest(currency *models2.Currency) (*http.Request, error) {
+func (api *CoinAPIExecutor) GenerateHttpRequest(currency *models.Currency) (*http.Request, error) {
 	endpoint := api.generateEndpoint(currency)
 	req, err := http.NewRequest(
 		http.MethodGet,
@@ -40,22 +39,26 @@ func (api *CoinAPIExecutor) GenerateHttpRequest(currency *models2.Currency) (*ht
 	return req, nil
 }
 
-func (api *CoinAPIExecutor) ExtractRate(jsonValue []byte, _ *models2.Currency) (models2.Rate, error) {
+func (api *CoinAPIExecutor) ExtractRate(resp *http.Response, _ *models.Currency) (models.Rate, error) {
 	rate := struct {
 		Rate float64 `json:"rate"`
 	}{}
 
-	decoder := json.NewDecoder(bytes.NewReader(jsonValue))
+	decoder := json.NewDecoder(resp.Body)
 	err := decoder.Decode(&rate)
 	if err != nil {
-		return models2.Rate{}, errors.Wrap(ErrFailedToGetRate, "ExtractRate")
+		return models.Rate{}, errors.Wrap(ErrFailedToGetRate, "ExtractRate")
 	}
 
-	return models2.Rate{
+	return models.Rate{
 		Value: rate.Rate,
 	}, nil
 }
 
-func (api *CoinAPIExecutor) generateEndpoint(currency *models2.Currency) string {
+func (api *CoinAPIExecutor) generateEndpoint(currency *models.Currency) string {
 	return fmt.Sprintf(api.endpoint, currency.From, currency.To)
+}
+
+func (api *CoinAPIExecutor) Name() string {
+	return "CoinAPI"
 }
