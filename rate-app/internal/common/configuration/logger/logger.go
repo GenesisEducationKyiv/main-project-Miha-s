@@ -4,7 +4,6 @@ import (
 	"btc-test-task/internal/common/configuration/config"
 	"bytes"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -39,21 +38,13 @@ func (mf *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func Init(conf *config.Config) error {
+func Init(conf *config.Config, writer LoggerWriter) error {
 	Log = logrus.New()
 	Log.SetFormatter(&CustomFormatter{})
 	Log.SetReportCaller(true)
 
 	Log.Level = getLogLevel(conf.LogLevel)
-	Log.Out = os.Stdout
-	if len(conf.LogFile) != 0 {
-		file, err := os.OpenFile(conf.LogFile, os.O_CREATE|os.O_WRONLY, 0666)
-		if err != nil {
-			Log.Errorf("Failed to log to file %v, error %v", conf.LogFile, err)
-			return err
-		}
-		Log.Out = file
-	}
+	Log.Out = writer
 
 	return nil
 }

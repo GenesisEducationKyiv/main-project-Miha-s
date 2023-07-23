@@ -26,3 +26,7 @@ emails_storage.json
 # IDE files
 .idea/
 .vscode/
+
+# Docker volumes
+logs/
+storage/

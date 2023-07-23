@@ -13,7 +13,7 @@ import (
 )
 
 func TestHttpRateProvider(t *testing.T) {
-	err := logger.Init(&config.Config{})
+	err := logger.Init(&config.Config{}, &LoggerWriterStub{})
 	if err != nil {
 		t.Fatalf("Failed to initialize logger: %v", err)
 	}
@@ -87,3 +87,8 @@ func (executor *rateExecutorStub) ExtractRate(_ *http.Response, _ *models.Curren
 func (executor *rateExecutorStub) Name() string {
 	return "Executor name"
 }
+
+type LoggerWriterStub struct{}
+
+func (_ *LoggerWriterStub) Write(p []byte) (n int, err error) { return 0, nil }
+func (_ *LoggerWriterStub) Close()                            {}

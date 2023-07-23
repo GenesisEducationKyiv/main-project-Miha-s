@@ -11,7 +11,7 @@ import (
 )
 
 func TestRateHandler(t *testing.T) {
-	err := logger.Init(&conf)
+	err := logger.Init(&conf, &LoggerWriterStub{})
 	if err != nil {
 		t.Fatalf("Failed to initilize logger: %v", err)
 	}

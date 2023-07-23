@@ -20,15 +20,24 @@ import (
 )
 
 type Lifecycle struct {
-	services        Services
-	handlersFactory server.HandlersFactory
-	server          *server.Server
-	config          config.Config
+	services         Services
+	handlersFactory  server.HandlersFactory
+	loggerWriter     logger.LoggerWriter
+	middlewareLogger *server.RabbitMQLogger
+	server           *server.Server
+	config           config.Config
 }
 
 func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	lifecycle.config = *conf
-	err := logger.Init(conf)
+	var err error
+
+	lifecycle.loggerWriter, err = composeLoggers(conf)
+	if err != nil {
+		return errors.Wrap(err, "Init")
+	}
+
+	err = logger.Init(conf, lifecycle.loggerWriter)
 	if err != nil {
 		return errors.Wrap(err, "Init")
 	}
@@ -47,12 +56,30 @@ func (lifecycle *Lifecycle) Init(conf *config.Config) error {
 	}
 
 	lifecycle.handlersFactory = handlers.NewHandlersFactoryImpl(conf, &lifecycle.services)
+	middlewareLogger, err := server.NewRabbitMQLogger(conf)
+	if err != nil {
+		return errors.Wrap(err, "Init")
+	}
+	lifecycle.middlewareLogger = middlewareLogger
+	lifecycle.server = server.NewServer(conf, lifecycle.handlersFactory, middlewareLogger.MiddlewareLogger())
 
-	lifecycle.server = server.NewServer(conf, lifecycle.handlersFactory)
-
-	logger.Log.Infof("The server is listening on port: %v", conf.Port)
+	logger.Log.Infof("Server port is: %v", conf.Port)
 
 	return nil
+}
+
+func composeLoggers(conf *config.Config) (logger.LoggerWriter, error) {
+	consoleLogger := logger.NewLoggerWriterChain(logger.NewConsoleLoggerWriter())
+
+	if len(conf.LogFile) != 0 {
+		fileLogger, err := logger.NewFileLoggerWriter(conf)
+		if err != nil {
+			return nil, err
+		}
+		consoleLogger.SetNext(logger.NewLoggerWriterChain(fileLogger))
+	}
+
+	return consoleLogger, nil
 }
 
 func composeRateProvider(conf *config.Config) (handlers.RateProvider, error) {
@@ -80,6 +107,11 @@ func (lifecycle *Lifecycle) Run() error {
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 
 	defer lifecycle.services.EmailsRepository.Close()
+	defer lifecycle.loggerWriter.Close()
+	defer lifecycle.middlewareLogger.Close()
+	defer lifecycle.server.Shutdown()
+
+	logger.Log.Info("The server has started")
 
 	go func() {
 		done <- lifecycle.server.Run()

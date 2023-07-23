@@ -4,6 +4,9 @@ jobs:
   golangci:
     name: Linter
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        workdir: ['rate-app', 'logs-consumer']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -14,6 +17,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.53
+          working-directory: ${{ matrix.workdir }}
 
   build-and-tests:
     name: Build and tests
@@ -28,12 +32,13 @@ jobs:
           go-version: '1.20'
           cache: false
       - name: Build
+        working-directory: ./rate-app
         run: go build -v ./...
       - name: Test
-        working-directory: ./internal
+        working-directory: ./rate-app/internal
         run: go test -v ./...
       - name: Test arch
-        working-directory: ./tests/architecture
+        working-directory: ./rate-app/tests/architecture
         run: go test -v ./...
 
   e2e:
@@ -50,5 +55,5 @@ jobs:
           go-version: '1.20'
           cache: false
       - name: Run E2E tests
-        working-directory: ./tests/e2e
+        working-directory: ./rate-app/tests/e2e
         run: go test -v ./...

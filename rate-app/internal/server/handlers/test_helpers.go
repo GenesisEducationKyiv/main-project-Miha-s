@@ -74,3 +74,8 @@ func (services *ServicesStub) GetRateProviderService() RateProvider {
 func (services *ServicesStub) GetTemplatesService() Templates {
 	return services.Templates
 }
+
+type LoggerWriterStub struct{}
+
+func (_ *LoggerWriterStub) Write(p []byte) (n int, err error) { return 0, nil }
+func (_ *LoggerWriterStub) Close()                            {}
