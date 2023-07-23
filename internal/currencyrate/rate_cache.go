@@ -5,13 +5,11 @@ import (
 	"btc-test-task/internal/common/configuration/logger"
 	"btc-test-task/internal/common/models"
 	"time"
-
-	"github.com/patrickmn/go-cache"
-	"github.com/pkg/errors"
 )
 
-type TimeProvider interface {
-	Now() time.Time
+type CacheProvider interface {
+	Get(k string) (interface{}, bool)
+	Add(k string, x interface{}, d time.Duration) error
 }
 
 type RateProvider interface {
@@ -20,18 +18,15 @@ type RateProvider interface {
 
 type RateCache struct {
 	rateProvider RateProvider
-	cache        *cache.Cache
+	cache        CacheProvider
+	expiration   time.Duration
 }
 
-func NewRateCache(config *config.Config, rateProvider RateProvider, timeProvider TimeProvider) (*RateCache, error) {
-	duration, err := time.ParseDuration(config.RateCacheDuration)
-	if err != nil {
-		return nil, errors.Wrap(err, "NewRateCache")
-	}
-
+func NewRateCache(config *config.Config, rateProvider RateProvider, cache CacheProvider) (*RateCache, error) {
 	return &RateCache{
 		rateProvider: rateProvider,
-		cache:        cache.New(duration, duration),
+		cache:        cache,
+		expiration:   config.RateCacheDuration,
 	}, nil
 }
 
@@ -45,7 +40,7 @@ func (c *RateCache) GetCurrentRate(currency *models.Currency) (models.Rate, erro
 		return models.Rate{}, err
 	}
 
-	err = c.cache.Add(c.key(currency), rate, cache.DefaultExpiration)
+	err = c.cache.Add(c.key(currency), rate, c.expiration)
 	if err != nil {
 		logger.Log.Errorf("Failed to save cache %v", err)
 	}

@@ -14,8 +14,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 )
 
@@ -65,11 +65,12 @@ func composeRateProvider(conf *config.Config) (handlers.RateProvider, error) {
 	CoinAPIRateProvider.SetNext(BinanceAPIrateProvider)
 	CoinGeckoRateProvider.SetNext(CoinAPIRateProvider)
 
-	cache, err := currencyrate.NewRateCache(conf, CoinGeckoRateProvider, &DefaultTimeProvider{})
+	rateCache, err := currencyrate.NewRateCache(conf, CoinGeckoRateProvider,
+		cache.New(conf.RateCacheDuration, conf.RateCacheDuration))
 	if err != nil {
 		return nil, err
 	}
-	return cache, nil
+	return rateCache, nil
 }
 
 func (lifecycle *Lifecycle) Run() error {
@@ -95,10 +96,4 @@ func (lifecycle *Lifecycle) Run() error {
 		}
 	}
 	return nil
-}
-
-type DefaultTimeProvider struct{}
-
-func (timeProvider *DefaultTimeProvider) Now() time.Time {
-	return time.Now()
 }
