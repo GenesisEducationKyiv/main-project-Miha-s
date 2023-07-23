@@ -1,0 +1,9 @@
+linters:
+  disable-all: true
+  enable:
+    - gofmt
+    - goimports
+    - ineffassign
+    - gosimple
+    - goconst
+    - bodyclose
